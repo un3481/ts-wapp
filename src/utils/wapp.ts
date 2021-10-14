@@ -10,9 +10,9 @@ import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
 
 // Import Bot Type
 // eslint-disable-next-line import/no-duplicates
-import type Bot from './bot.js'
+import type Bot from '../index.js'
 // eslint-disable-next-line import/no-duplicates
-import type { TExec, TAExec } from './bot.js'
+import type { TExec, TAExec, TFetchString, ISent, ISentTextObj } from './types.js'
 
 // Import FS
 import fs from 'fs'
@@ -22,24 +22,6 @@ import fs from 'fs'
 #                                                    MESSAGE INTERFACES                                                  #
 ##########################################################################################################################
 */
-
-// Message Text Type
-export type TFetchString = string | Promise<string> | (() => string | Promise<string>)
-
-// Sent Message Interface
-export interface ISent extends Venom.Message {
-  readonly whapp: Whapp
-  readonly quotedMsg: ISent
-  send(msg: TFetchString, log?: TFetchString, quoteId?: TFetchString): Promise<ISent>
-  quote(msg: TFetchString, log?: TFetchString): Promise<ISent>
-  onReply(exec: TExec): boolean
-  clean(): string
-}
-
-// Sent Text Object
-export interface ISentTextObj {
-  to: { _serialized: string }
-}
 
 // Type Guards
 export class WhappTypeGuards {
@@ -71,7 +53,7 @@ export class WhappTypeGuards {
 ##########################################################################################################################
 */
 
-export default class Whapp {
+export default class Wapp {
   bot: Bot
   client: Venom.Whatsapp
   me: VenomHostDevice.Me
@@ -88,7 +70,7 @@ export default class Whapp {
   }
 
   // Cycle Reference
-  get whapp() { return this }
+  get wapp() { return this }
   get misc() { return this.bot.misc }
 
   /*
@@ -117,7 +99,7 @@ export default class Whapp {
     const hostDevice = await this.client.getHostDevice()
     this.me = hostDevice.wid
     // Set On-Message Function
-    this.client.onMessage(msg => this.whapp.onMessage(msg))
+    this.client.onMessage(msg => this.wapp.onMessage(msg))
     // return done
     return true
   }
@@ -139,7 +121,7 @@ export default class Whapp {
     else if (message.from === 'status@broadcast') return
     const uSent = this.setMessage(message)
     const isGroup = uSent.isGroupMsg === true
-    const ment = uSent.body.includes(`@${this.whapp.me.user}`)
+    const ment = uSent.body.includes(`@${this.wapp.me.user}`)
     if (ment) await uSent.quote(this.bot.chat.gotMention, 'got_mention')
     if (is.object(uSent.quotedMsg)) return await this.onReply(uSent)
     const data = (ment || !isGroup) ? await this.bot.execute(uSent) : null
@@ -153,8 +135,8 @@ export default class Whapp {
     // Check for Quoted-Message Object
     if (!message.quotedMsg) return
     const replyable = message.quotedMsg.id
-    if (is.in(this.whapp.replyables, replyable)) {
-      return await this.whapp.replyables[replyable](message)
+    if (is.in(this.wapp.replyables, replyable)) {
+      return await this.wapp.replyables[replyable](message)
     }
   }
 
@@ -265,25 +247,25 @@ export default class Whapp {
     // Fix Author on Private Messages
     if (!sent.isGroupMsg) sent.author = sent.from
     // Allow Cyclic Reference
-    const whapp = this
+    const wapp = this
     // Assign Message Properties
     const message: ISent = Object.defineProperty(
       Object.assign({}, sent,
         {
-          // Whapp
-          get whapp () { return whapp },
+          // Wapp
+          get wapp () { return wapp },
           // Set Properties
           id: sent.id,
           body: sent.body,
           // Fix Contact Names
-          from: whapp.contact(sent.from, -1),
-          author: whapp.contact(sent.author, -1),
+          from: wapp.contact(sent.from, -1),
+          author: wapp.contact(sent.author, -1),
           // Fix Quoted Message Object
-          quotedMsg: whapp.setMessage(sent.quotedMsgObj),
+          quotedMsg: wapp.setMessage(sent.quotedMsgObj),
           quotedMsgObj: sent.quotedMsgObj,
           // Send Message to Chat
           async send(msg: TFetchString, log?: TFetchString, quoteId?: TFetchString): Promise<ISent> {
-            return this.whapp.send(this.from, msg, log, quoteId)
+            return this.wapp.send(this.from, msg, log, quoteId)
           },
           // Quote Message
           async quote(msg: TFetchString, log?: TFetchString): Promise<ISent> {
@@ -292,18 +274,18 @@ export default class Whapp {
           // Set On-Reply Action
           onReply(exec: TExec): boolean {
             if (!is.function(exec)) return false
-            this.whapp.addReplyable(this.id, exec)
+            this.wapp.addReplyable(this.id, exec)
             return true
           },
           // Clean Message Text
           clean(): string {
-            return this.whapp.bot.chat.clean(this.body)
+            return this.wapp.bot.chat.clean(this.body)
           }
         }
       ),
       // Set Getter
-      'whapp',
-      { get() { return whapp } }
+      'wapp',
+      { get() { return wapp } }
     )
     // return Message Object
     return message
