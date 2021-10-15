@@ -28,17 +28,17 @@ const misc = new Miscellaneous();
 */
 // Bot Class
 export default class Bot {
+  name;
   misc;
   actions;
-  started;
   wapp;
   chat;
   api;
-  constructor() {
+  constructor(name) {
+    // Set Bot Name
+    this.name = name;
     // Get Miscellaneous Methods
     this.misc = misc;
-    // Bot Properties
-    this.started = false;
     // Set Lists
     this.actions = {};
     // Nest Objects
@@ -111,10 +111,10 @@ export default class Bot {
   ##########################################################################################################################
   */
   // Start App
-  async start(session) {
+  async start() {
     // Start Wapp Services
-    this.bot.started = await this.wapp.start(session);
-    if (!this.bot.started)
+    await this.wapp.start(this.bot.name);
+    if (!this.wapp.started)
       return false;
     // Log Start of Bot
     await this.bot.log('Avbot::Started');
@@ -123,7 +123,7 @@ export default class Bot {
     // Start Interface App
     await this.bot.api.start();
     // return status
-    return this.bot.started;
+    return this.wapp.started;
   }
   /*
   ##########################################################################################################################

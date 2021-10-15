@@ -48,6 +48,7 @@ export default class Wapp {
   bot;
   client;
   me;
+  started;
   contactsList;
   replyables;
   typeGuards;
@@ -83,6 +84,7 @@ export default class Wapp {
         throw clientError;
       // Assign Client Object to Bot
       this.client = client;
+      this.started = true;
       // If Error Occurred
     } catch (error) {
       // Log Error
@@ -109,7 +111,7 @@ export default class Wapp {
     // Global Type-Guard
     const is = this.bot.misc.guards.is;
     // Prevent execution if bot not started
-    if (!this.bot.started)
+    if (!this.wapp.started)
       return;
     else if (!is.object(message))
       return;
@@ -311,7 +313,7 @@ export default class Wapp {
     // Global Type-Guard
     const is = this.bot.misc.guards.is;
     // check if bot has started
-    if (!this.bot.started)
+    if (!this.wapp.started)
       throw new Error('bot not started');
     // fetch text data
     to = await this.fetch(to);

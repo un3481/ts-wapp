@@ -35,19 +35,19 @@ const misc = new Miscellaneous()
 */
 
 // Bot Class
-export default class Bot {
+export default class Bot<N extends string = string> {
+  name: N
   misc: Miscellaneous
   actions: Record<string, IAction>
-  started: boolean
   wapp: Wapp
   chat: Chat
   api: API
 
-  constructor () {
+  constructor (name: N) {
+    // Set Bot Name
+    this.name = name
     // Get Miscellaneous Methods
     this.misc = misc
-    // Bot Properties
-    this.started = false
     // Set Lists
     this.actions = {}
 
@@ -129,10 +129,10 @@ export default class Bot {
   */
 
   // Start App
-  async start(session: string): Promise<boolean> {
+  async start(): Promise<boolean> {
     // Start Wapp Services
-    this.bot.started = await this.wapp.start(session)
-    if (!this.bot.started) return false
+    await this.wapp.start(this.bot.name)
+    if (!this.wapp.started) return false
     // Log Start of Bot
     await this.bot.log('Avbot::Started')
     // Send Message to Admin
@@ -140,7 +140,7 @@ export default class Bot {
     // Start Interface App
     await this.bot.api.start()
     // return status
-    return this.bot.started
+    return this.wapp.started
   }
 
   /*

@@ -8,7 +8,7 @@
   "scripts": {
     "transpile": "tsc -p tsconfig.json",
     "beautify": "js-beautify -r --editorconfig ./dist/**/*.{js,ts,tsx}",
-    "build": "del /Q dist && yarn transpile && yarn beautify"
+    "build": "rmdir \"./dist\" /s /q && yarn transpile && yarn beautify"
   },
   "license": "MIT",
   "dependencies": {

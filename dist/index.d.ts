@@ -7,17 +7,18 @@ import type {
   ISent
 } from './utils/types.js';
 import Miscellaneous from 'ts-misc';
-export default class Bot {
+export default class Bot < N extends string = string > {
+  name: N;
   misc: Miscellaneous;
-  actions: Record < string, IAction > ;
-  started: boolean;
+  actions: Record < string,
+  IAction > ;
   wapp: Wapp;
   chat: Chat;
   api: API;
-  constructor();
+  constructor(name: N);
   get bot(): this;
   log(log: string | Error): Promise < void > ;
-  start(session: string): Promise < boolean > ;
+  start(): Promise < boolean > ;
   get send(): (typeof Wapp.prototype.send);
   get sends(): (typeof Wapp.prototype.sends);
   execute(message: ISent): Promise < any > ;

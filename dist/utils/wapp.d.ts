@@ -17,6 +17,7 @@ export default class Wapp {
   bot: Bot;
   client: Venom.Whatsapp;
   me: VenomHostDevice.Me;
+  started: boolean;
   contactsList: Record < string, string > ;
   replyables: Record < string, TAExec > ;
   typeGuards: WhappTypeGuards;
