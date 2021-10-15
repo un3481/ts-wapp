@@ -1,12 +1,13 @@
 /*
 ##########################################################################################################################
-#                                               WAPP - WHATSAPP APPLICATION                                              #
+#                                                        TS-WAPP                                                         #
 ##########################################################################################################################
 #                                                                                                                        #
-#                                                      Wapp v2.1.3                                                       #
-#                                          Multi-language API for Whatsapp Bot                                           #
+#                                             HTTP Rest API for Whatsapp Bot                                             #
+#                                                    Author: Anthony                                                     #
 #                                 ---------------- Python3 --- NodeJS ----------------                                   #
-#                                             This is a Development Server                                               #
+#                                                 * Under Development *                                                  #
+#                                      https://github.com/anthony-freitas/ts-wapp                                        #
 #                                                 Powered by venom-bot                                                   #
 #                                                                                                                        #
 ##########################################################################################################################
