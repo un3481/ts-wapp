@@ -43,8 +43,8 @@
     "js-beautify": "^1.13.5",
     "popper": "^1.0.1",
     "prettier": "^2.2.1",
-    "typescript": "^4.1.5",
-    "tsconfig-paths": "^3.9.0"
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.1.5"
   },
   "resolutions": {}
 }
