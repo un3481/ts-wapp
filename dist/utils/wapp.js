@@ -5,8 +5,6 @@
 */
 // Import Venom
 import Venom from 'venom-bot';
-// Import FS
-import fs from 'fs';
 /*
 ##########################################################################################################################
 #                                                    MESSAGE INTERFACES                                                  #
@@ -50,6 +48,7 @@ export default class Wapp {
   bot;
   client;
   me;
+  contactsList;
   replyables;
   typeGuards;
   constructor(bot) {
@@ -179,19 +178,17 @@ export default class Wapp {
     // return text
     return resolution;
   }
-  // get contacts list
-  contactsList(flag) {
-    // check if directory exists
-    if (!fs.existsSync('./private')) {
-      fs.mkdirSync('./private');
-    }
-    // check if file exists
-    if (!fs.existsSync('./private/contacts.bot.json')) {
-      fs.writeFileSync('./private/contacts.bot.json', '{}');
-    }
-    // get contacts from json
-    let contacts = JSON.parse(fs.readFileSync('./private/contacts.bot.json').toString());
-    // use flags
+  // Set Contacts List
+  setContactsList(contactsList) {
+    this.contactsList = contactsList;
+    return true;
+  }
+  // Get Contact Number by Name
+  getContactByName(to, flag) {
+    let contact = `${to}`;
+    // Get Contacts List
+    let contacts = this.misc.sets.serialize(this.contactsList);
+    // Switch Key-Value Pairs
     if (flag === -1) {
       contacts = Object.entries(contacts)
         .reduce((ret, entry) => {
@@ -200,16 +197,6 @@ export default class Wapp {
           return ret;
         }, {});
     }
-    // return contacts
-    return contacts;
-  }
-  // replace contact name
-  contact(to, flag) {
-    const params = [];
-    let contact = `${to}`;
-    if (flag)
-      params.push(flag);
-    const contacts = this.contactsList(...params);
     // replace cyclicaly
     while (Object.keys(contacts).includes(contact)) {
       contact = contacts[contact];
@@ -258,8 +245,8 @@ export default class Wapp {
         id: sent.id,
         body: sent.body,
         // Fix Contact Names
-        from: wapp.contact(sent.from, -1),
-        author: wapp.contact(sent.author, -1),
+        from: wapp.getContactByName(sent.from, -1),
+        author: wapp.getContactByName(sent.author, -1),
         // Fix Quoted Message Object
         quotedMsg: wapp.setMessage(sent.quotedMsgObj),
         quotedMsgObj: sent.quotedMsgObj,
@@ -341,7 +328,7 @@ export default class Wapp {
     if (quoteId && !is.string(quoteId))
       throw new Error('argument "quoteId" not valid');
     // get number from contacts
-    const phoneNumber = this.contact(to);
+    const phoneNumber = this.getContactByName(to);
     // set message object
     const result = (quoteId ?
       await this.misc.handle.safe(this.sendReply, this)(phoneNumber, text, quoteId) :

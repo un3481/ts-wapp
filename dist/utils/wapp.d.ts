@@ -17,6 +17,7 @@ export default class Wapp {
   bot: Bot;
   client: Venom.Whatsapp;
   me: VenomHostDevice.Me;
+  contactsList: Record < string, string > ;
   replyables: Record < string, TAExec > ;
   typeGuards: WhappTypeGuards;
   constructor(bot: Bot);
@@ -27,8 +28,8 @@ export default class Wapp {
   onReply(message: ISent): Promise < import("ts-misc/dist/utils/handle").TSafeReturn < unknown >> ;
   addReplyable(sentId: string, exec: TExec): boolean;
   fetch(data: TFetchString): Promise < string > ;
-  contactsList(flag ? : number): Record < string, string > ;
-  contact(to: string, flag ? : number): string;
+  setContactsList(contactsList: Record < string, string > ): boolean;
+  getContactByName(to: string, flag ? : number): string;
   getMessageById(id: string): Promise < ISent > ;
   setMessage(sent: Venom.Message): ISent;
   sendText(to: string, text: string): Promise < ISent > ;
