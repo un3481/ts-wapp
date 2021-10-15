@@ -8,14 +8,15 @@
 import Venom from 'venom-bot'
 import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
 
-// Import Bot Type
-// eslint-disable-next-line import/no-duplicates
+// Import Bot Types
 import type Bot from '../index.js'
-// eslint-disable-next-line import/no-duplicates
-import type { TExec, TAExec, TFetchString, ISent, ISentTextObj } from './types.js'
-
-// Import FS
-import fs from 'fs'
+import type {
+  TExec,
+  TAExec,
+  TFetchString,
+  ISent,
+  ISentTextObj
+} from './types.js'
 
 /*
 ##########################################################################################################################
@@ -57,6 +58,7 @@ export default class Wapp {
   bot: Bot
   client: Venom.Whatsapp
   me: VenomHostDevice.Me
+  contactsList: Record<string, string>
   replyables: Record<string, TAExec>
   typeGuards: WhappTypeGuards
 
@@ -176,21 +178,18 @@ export default class Wapp {
     return resolution
   }
 
-  // get contacts list
-  contactsList(flag?: number): Record<string, string> {
-    // check if directory exists
-    if (!fs.existsSync('./private')) {
-      fs.mkdirSync('./private')
-    }
-    // check if file exists
-    if (!fs.existsSync('./private/contacts.bot.json')) {
-      fs.writeFileSync('./private/contacts.bot.json', '{}')
-    }
-    // get contacts from json
-    let contacts: Record<string, string> = JSON.parse(
-      fs.readFileSync('./private/contacts.bot.json').toString()
-    )
-    // use flags
+  // Set Contacts List
+  setContactsList(contactsList: Record<string, string>) {
+    this.contactsList = contactsList
+    return true
+  }
+
+  // Get Contact Number by Name
+  getContactByName(to: string, flag?: number): string {
+    let contact = `${to}`
+    // Get Contacts List
+    let contacts = this.misc.sets.serialize(this.contactsList)
+    // Switch Key-Value Pairs
     if (flag === -1) {
       contacts = Object.entries(contacts)
         .reduce((ret, entry) => {
@@ -199,16 +198,6 @@ export default class Wapp {
           return ret
         }, {})
     }
-    // return contacts
-    return contacts
-  }
-
-  // replace contact name
-  contact(to: string, flag?: number): string {
-    const params = []
-    let contact = `${to}`
-    if (flag) params.push(flag)
-    const contacts = this.contactsList(...params)
     // replace cyclicaly
     while (Object.keys(contacts).includes(contact)) {
       contact = contacts[contact]
@@ -224,7 +213,10 @@ export default class Wapp {
     // Set Get-Message Function
     const getMessage = () => this.client.getMessageById(id)
     const checkMessage = (obj: unknown) => is.object(obj) && !obj.erro
-    const trial = this.misc.handle.repeat(getMessage.bind(this) as typeof getMessage, checkMessage.bind(this))
+    const trial = this.misc.handle.repeat(
+      getMessage.bind(this) as typeof getMessage,
+      checkMessage.bind(this)
+    )
     return new Promise(resolve => {
       trial
         .catch(error => (n => null)(error) || resolve(null))
@@ -258,8 +250,8 @@ export default class Wapp {
           id: sent.id,
           body: sent.body,
           // Fix Contact Names
-          from: wapp.contact(sent.from, -1),
-          author: wapp.contact(sent.author, -1),
+          from: wapp.getContactByName(sent.from, -1),
+          author: wapp.getContactByName(sent.author, -1),
           // Fix Quoted Message Object
           quotedMsg: wapp.setMessage(sent.quotedMsgObj),
           quotedMsgObj: sent.quotedMsgObj,
@@ -340,7 +332,7 @@ export default class Wapp {
     if (log && !is.string(log)) throw new Error('argument "log" not valid')
     if (quoteId && !is.string(quoteId)) throw new Error('argument "quoteId" not valid')
     // get number from contacts
-    const phoneNumber = this.contact(to)
+    const phoneNumber = this.getContactByName(to)
     // set message object
     const result = (quoteId
       ? await this.misc.handle.safe(this.sendReply, this)(phoneNumber, text, quoteId)
