@@ -18,7 +18,7 @@ export default class API {
   get axios(): import("axios").AxiosStatic;
   req(url: string, data: any): Promise < AxiosResponse < any >> ;
   reqs(url: string, data: any): Promise < [AxiosResponse < any > , Error] > ;
-  start(): Promise < boolean > ;
+  start(port: number): Promise < boolean > ;
   execute(req: expressCore.Request): Promise < {
     done: boolean;
     data: unknown;

@@ -130,13 +130,13 @@ export default class Bot<N extends string = string> {
   */
 
   // Start App
-  async start(): Promise<boolean> {
+  async start(port: number): Promise<boolean> {
     // Start Wapp Services
     await this.wapp.start(this.bot.name)
     // Check Started
     if (!this.wapp.started) return false
     // Start Interface App
-    await this.api.start()
+    await this.api.start(port)
     // Log Start of Bot
     await this.bot.log(`${this.bot.name}::started`)
     // return status

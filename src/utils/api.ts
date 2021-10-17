@@ -92,10 +92,10 @@ export default class API {
   }
 
   // Start Interface App
-  async start() {
+  async start(port: number) {
     try {
-      // listen on port 1615
-      this.app.listen(1615)
+      // listen on port especified
+      this.app.listen(port)
     // if error occurred
     } catch { return false }
     // return success

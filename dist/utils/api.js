@@ -76,10 +76,10 @@ export default class API {
     return req(url, data);
   }
   // Start Interface App
-  async start() {
+  async start(port) {
     try {
-      // listen on port 1615
-      this.app.listen(1615);
+      // listen on port especified
+      this.app.listen(port);
       // if error occurred
     } catch {
       return false;

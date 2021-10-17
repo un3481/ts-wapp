@@ -18,7 +18,7 @@ export default class Bot < N extends string = string > {
   constructor(name: N);
   get bot(): this;
   log(log: string | Error): Promise < void > ;
-  start(): Promise < boolean > ;
+  start(port: number): Promise < boolean > ;
   get send(): (typeof Wapp.prototype.send);
   get sends(): (typeof Wapp.prototype.sends);
   execute(message: ISent): Promise < any > ;
