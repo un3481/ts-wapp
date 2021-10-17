@@ -11,7 +11,7 @@
 #                                                 Powered by venom-bot                                                   #
 #                                                                                                                        #
 ##########################################################################################################################
-#                                                        AVBOT CORE                                                      #
+#                                                        BOT CORE                                                        #
 ##########################################################################################################################
 */
 // Import Miscellaneous
@@ -115,14 +115,13 @@ export default class Bot {
   async start() {
     // Start Wapp Services
     await this.wapp.start(this.bot.name);
+    // Check Started
     if (!this.wapp.started)
       return false;
-    // Log Start of Bot
-    await this.bot.log('Avbot::Started');
-    // Send Message to Admin
-    await this.bot.sends('anthony', 'Node Avbot Started!', 'bot_start');
     // Start Interface App
-    await this.bot.api.start();
+    await this.api.start();
+    // Log Start of Bot
+    await this.bot.log(`${this.bot.name}::started`);
     // return status
     return this.wapp.started;
   }
