@@ -51,9 +51,13 @@ export default class API {
       port: null, auth: { user: null, passwd: null }
     }
     // Get Authentication from Target Object
-    const getAuth = () => ({
-      [this.config.auth.user]: this.config.auth.passwd
-    })
+    const getAuth = () => {
+      try {
+        return {
+          [this.config.auth.user]: this.config.auth.passwd
+        }
+      } catch (_e) { return null }
+    }
     // Define App
     this.app = express()
     this.app.use(
@@ -86,7 +90,9 @@ export default class API {
   get misc() { return this.bot.misc }
   get axios() { return axios }
 
-  //##########################################################################################################################
+  /*
+  ##########################################################################################################################
+  */
 
   // Set Listen Port
   port(port: number): API {
@@ -106,7 +112,9 @@ export default class API {
     return this
   }
 
-  //##########################################################################################################################
+  /*
+  ##########################################################################################################################
+  */
 
   // Request
   async req(target: ITarget, data: any): Promise<AxiosResponse<any>> {
@@ -128,7 +136,9 @@ export default class API {
     return req(target, data)
   }
 
-  //##########################################################################################################################
+  /*
+  ##########################################################################################################################
+  */
 
   // Start Interface App
   async start() {

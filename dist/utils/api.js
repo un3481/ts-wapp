@@ -38,9 +38,15 @@ export default class API {
       }
     };
     // Get Authentication from Target Object
-    const getAuth = () => ({
-      [this.config.auth.user]: this.config.auth.passwd
-    });
+    const getAuth = () => {
+      try {
+        return {
+          [this.config.auth.user]: this.config.auth.passwd
+        };
+      } catch (_e) {
+        return null;
+      }
+    };
     // Define App
     this.app = express();
     this.app.use(basicAuth({
@@ -72,7 +78,9 @@ export default class API {
   get axios() {
     return axios;
   }
-  //##########################################################################################################################
+  /*
+  ##########################################################################################################################
+  */
   // Set Listen Port
   port(port) {
     this.config.port = port;
@@ -88,7 +96,9 @@ export default class API {
     this.config.auth.passwd = passwd;
     return this;
   }
-  //##########################################################################################################################
+  /*
+  ##########################################################################################################################
+  */
   // Request
   async req(target, data) {
     return axios.post(target.addr, this.misc.sets.serialize(data), {
@@ -103,7 +113,9 @@ export default class API {
     const req = this.misc.handle.safe(this.req, this);
     return req(target, data);
   }
-  //##########################################################################################################################
+  /*
+  ##########################################################################################################################
+  */
   // Start Interface App
   async start() {
     try {
