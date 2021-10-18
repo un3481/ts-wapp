@@ -25,3 +25,10 @@ export interface ISentTextObj {
     _serialized: string;
   };
 }
+export interface ITarget {
+  readonly addr: string;
+  readonly auth: {
+    readonly user: string;
+    readonly password: string;
+  };
+}

@@ -20,6 +20,7 @@ export default class API {
   auth;
   app;
   actions;
+  config;
   constructor(bot) {
     Object.defineProperty(this, 'bot', {
       get() {
@@ -29,12 +30,22 @@ export default class API {
     // Interface Actions Object
     this.actions = {};
     // Set Authentication
-    this.auth = 'ert2tyt3tQ3423rubu99ibasid8hya8da76sd';
+    this.config = {
+      port: null,
+      auth: {
+        user: null,
+        passwd: null
+      }
+    };
+    // Get Authentication from Target Object
+    const getAuth = () => ({
+      [this.config.auth.user]: this.config.auth.passwd
+    });
     // Define App
     this.app = express();
     this.app.use(basicAuth({
-      users: {
-        bot: this.auth
+      get users() {
+        return getAuth();
       }
     }));
     this.app.use(express.json());
@@ -61,25 +72,43 @@ export default class API {
   get axios() {
     return axios;
   }
+  //##########################################################################################################################
+  // Set Listen Port
+  port(port) {
+    this.config.port = port;
+    return this;
+  }
+  // Set Basic-Auth User
+  user(user) {
+    this.config.auth.user = user;
+    return this;
+  }
+  // Set Basic-Auth Password
+  password(passwd) {
+    this.config.auth.passwd = passwd;
+    return this;
+  }
+  //##########################################################################################################################
   // Request
-  async req(url, data) {
-    return axios.post(url, this.misc.sets.serialize(data), {
+  async req(target, data) {
+    return axios.post(target.addr, this.misc.sets.serialize(data), {
       auth: {
-        username: 'bot',
-        password: this.auth
+        username: target.auth.user,
+        password: target.auth.password
       }
     });
   }
   // Safe Request
-  async reqs(url, data) {
+  async reqs(target, data) {
     const req = this.misc.handle.safe(this.req, this);
-    return req(url, data);
+    return req(target, data);
   }
+  //##########################################################################################################################
   // Start Interface App
-  async start(port) {
+  async start() {
     try {
       // listen on port especified
-      this.app.listen(port);
+      this.app.listen(this.config.port);
       // if error occurred
     } catch {
       return false;
