@@ -89,7 +89,13 @@ export default class Bot {
       return this.wapp.getMessageById(req.body.id);
     });
     // Add host_device Action
-    this.api.add('host_device', async (req) => this.wapp.client.getHostDevice());
+    this.api.add('host_device', async (req) => {
+      const hd = await this.wapp.client.getHostDevice();
+      return {
+        ...hd,
+        name: this.bot.name
+      };
+    });
   }
   /*
   ##########################################################################################################################
