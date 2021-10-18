@@ -50,20 +50,12 @@ export default class API {
     this.config = {
       port: null, auth: { user: null, passwd: null }
     }
-    // Get Authentication from Target Object
-    const getAuth = () => {
-      try {
-        return {
-          [this.config.auth.user]: this.config.auth.passwd
-        }
-      } catch (_e) { return null }
-    }
     // Define App
     this.app = express()
     this.app.use(
       basicAuth({
-        get users() {
-          return getAuth()
+        users: {
+          [this.config.auth.user || '']: this.config.auth.passwd || ''
         }
       })
     )
@@ -143,6 +135,11 @@ export default class API {
   // Start Interface App
   async start() {
     try {
+      // Get Basic-Auth Config
+      const a = this.config.auth
+      const users = { [a.user || '']: a.passwd || '' }
+      // Set Basic-Auth
+      this.app.use(basicAuth({ users: users }))
       // listen on port especified
       this.app.listen(this.config.port)
     // if error occurred
