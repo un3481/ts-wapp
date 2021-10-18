@@ -18,7 +18,7 @@ import axios from 'axios'
 import type { AxiosResponse } from 'axios'
 
 // Import Action Interfaces
-import type { IAPIAction, IAAPIAction } from './types.js'
+import type { IAPIAction, IAAPIAction, ITarget } from './types.js'
 
 /*
 ##########################################################################################################################
@@ -32,6 +32,13 @@ export default class API {
   auth: string
   app: expressCore.Express
   actions: Record<string, IAAPIAction>
+  config: {
+    port: number
+    auth: {
+      user: string
+      passwd: string
+    }
+  }
 
   constructor (bot: Bot) {
     Object.defineProperty(this, 'bot',
@@ -40,12 +47,20 @@ export default class API {
     // Interface Actions Object
     this.actions = {}
     // Set Authentication
-    this.auth = 'ert2tyt3tQ3423rubu99ibasid8hya8da76sd'
+    this.config = {
+      port: null, auth: { user: null, passwd: null }
+    }
+    // Get Authentication from Target Object
+    const getAuth = () => ({
+      [this.config.auth.user]: this.config.auth.passwd
+    })
     // Define App
     this.app = express()
     this.app.use(
       basicAuth({
-        users: { bot: this.auth }
+        get users() {
+          return getAuth()
+        }
       })
     )
     this.app.use(express.json() as RequestHandler)
@@ -71,31 +86,55 @@ export default class API {
   get misc() { return this.bot.misc }
   get axios() { return axios }
 
+  //##########################################################################################################################
+
+  // Set Listen Port
+  port(port: number): API {
+    this.config.port = port
+    return this
+  }
+
+  // Set Basic-Auth User
+  user(user: string): API {
+    this.config.auth.user = user
+    return this
+  }
+
+  // Set Basic-Auth Password
+  password(passwd: string): API {
+    this.config.auth.passwd = passwd
+    return this
+  }
+
+  //##########################################################################################################################
+
   // Request
-  async req(url: string, data: any): Promise<AxiosResponse<any>> {
+  async req(target: ITarget, data: any): Promise<AxiosResponse<any>> {
     return axios.post(
-      url,
+      target.addr,
       this.misc.sets.serialize(data),
       {
         auth: {
-          username: 'bot',
-          password: this.auth
+          username: target.auth.user,
+          password: target.auth.password
         }
       }
     )
   }
 
   // Safe Request
-  async reqs(url: string, data: any): Promise<[AxiosResponse<any>, Error]> {
+  async reqs(target: ITarget, data: any): Promise<[AxiosResponse<any>, Error]> {
     const req = this.misc.handle.safe(this.req, this)
-    return req(url, data)
+    return req(target, data)
   }
 
+  //##########################################################################################################################
+
   // Start Interface App
-  async start(port: number) {
+  async start() {
     try {
       // listen on port especified
-      this.app.listen(port)
+      this.app.listen(this.config.port)
     // if error occurred
     } catch { return false }
     // return success

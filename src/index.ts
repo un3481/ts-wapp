@@ -68,7 +68,7 @@ export default class Bot<N extends string = string> {
         const text = req.body.text || 'empty message'
         const log = req.body.log || 'api::send_msg'
         const quoteId = req.body.quote_id || null
-        const replyUrl = req.body.reply_url || null
+        const referer = req.body.referer || null
         // send message
         const [sent, sendMessageError] = await this.bot.sends(to, text, log, quoteId)
         // if not done prevent execution
@@ -80,7 +80,7 @@ export default class Bot<N extends string = string> {
             msg_id: sent.id,
             reply: message
           }
-          const [data, onReplyError] = await this.api.reqs(replyUrl, json)
+          const [data, onReplyError] = await this.api.reqs(referer, json)
           if (onReplyError) throw onReplyError
           return data
         })

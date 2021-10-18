@@ -43,3 +43,12 @@ export interface ISent extends Venom.Message {
 export interface ISentTextObj {
   to: { _serialized: string }
 }
+
+// Target Interface
+export interface ITarget {
+  readonly addr: string
+  readonly auth: {
+    readonly user: string
+    readonly password: string
+  }
+}
