@@ -15,18 +15,20 @@ export default class API {
   actions: Record < string, IAAPIAction > ;
   config: {
     port: number;
-    auth: {
-      user: string;
-      passwd: string;
-    };
+    users: Record < string,
+    string > ;
   };
   constructor(bot: Bot);
   get api(): this;
   get misc(): import("ts-misc").default;
   get axios(): import("axios").AxiosStatic;
   port(port: number): API;
-  user(user: string): API;
-  password(passwd: string): API;
+  users: {
+    add(auth: {
+      user: string;
+      password: string;
+    }): boolean;
+  };
   req(target: ITarget, data: any): Promise < AxiosResponse < any >> ;
   reqs(target: ITarget, data: any): Promise < [AxiosResponse < any > , Error] > ;
   start(): Promise < boolean > ;

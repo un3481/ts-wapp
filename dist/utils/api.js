@@ -32,17 +32,12 @@ export default class API {
     // Set Authentication
     this.config = {
       port: null,
-      auth: {
-        user: null,
-        passwd: null
-      }
+      users: {}
     };
     // Define App
     this.app = express();
     this.app.use(basicAuth({
-      users: {
-        [this.config.auth.user || '']: this.config.auth.passwd || ''
-      }
+      users: this.config.users
     }));
     this.app.use(express.json());
     // Set Bot Interface
@@ -77,15 +72,12 @@ export default class API {
     return this;
   }
   // Set Basic-Auth User
-  user(user) {
-    this.config.auth.user = user;
-    return this;
-  }
-  // Set Basic-Auth Password
-  password(passwd) {
-    this.config.auth.passwd = passwd;
-    return this;
-  }
+  users = {
+    add(auth) {
+      this.config.users[auth.user] = auth.password;
+      return true;
+    }
+  };
   /*
   ##########################################################################################################################
   */
@@ -109,13 +101,9 @@ export default class API {
   // Start Interface App
   async start() {
     try {
-      // Get Basic-Auth Config
-      const a = this.config.auth;
-      const users = {};
-      users[a.user || ''] = a.passwd || '';
       // Set Basic-Auth
       this.app.use(basicAuth({
-        users: users
+        users: this.config.users
       }));
       // listen on port especified
       this.app.listen(this.config.port);
