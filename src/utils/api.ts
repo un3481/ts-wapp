@@ -137,9 +137,12 @@ export default class API {
     try {
       // Get Basic-Auth Config
       const a = this.config.auth
-      const users = { [a.user || '']: a.passwd || '' }
+      const users = {}
+      users[a.user || ''] = a.passwd || ''
       // Set Basic-Auth
-      this.app.use(basicAuth({ users: users }))
+      this.app.use(
+        basicAuth({ users: users })
+      )
       // listen on port especified
       this.app.listen(this.config.port)
     // if error occurred
