@@ -23,12 +23,10 @@ export default class API {
   get misc(): import("ts-misc").default;
   get axios(): import("axios").AxiosStatic;
   port(port: number): API;
-  users: {
-    add(auth: {
-      user: string;
-      password: string;
-    }): boolean;
-  };
+  addUser(auth: {
+    user: string;
+    password: string;
+  }): API;
   req(target: ITarget, data: any): Promise < AxiosResponse < any >> ;
   reqs(target: ITarget, data: any): Promise < [AxiosResponse < any > , Error] > ;
   start(): Promise < boolean > ;

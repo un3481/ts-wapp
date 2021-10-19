@@ -69,12 +69,10 @@ export default class API {
     return this;
   }
   // Set Basic-Auth User
-  users = {
-    add(auth) {
-      this.config.users[auth.user] = auth.password;
-      return true;
-    }
-  };
+  addUser(auth) {
+    this.config.users[auth.user] = auth.password;
+    return this;
+  }
   /*
   ##########################################################################################################################
   */
