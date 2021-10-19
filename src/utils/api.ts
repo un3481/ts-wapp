@@ -47,11 +47,6 @@ export default class API {
     this.config = { port: null, users: {} }
     // Define App
     this.app = express()
-    this.app.use(
-      basicAuth({
-        users: this.config.users
-      })
-    )
     this.app.use(express.json() as RequestHandler)
     // Set Bot Interface
     this.app.post('/bot', async (req, res) => {

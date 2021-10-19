@@ -36,9 +36,6 @@ export default class API {
     };
     // Define App
     this.app = express();
-    this.app.use(basicAuth({
-      users: this.config.users
-    }));
     this.app.use(express.json());
     // Set Bot Interface
     this.app.post('/bot', async (req, res) => {
