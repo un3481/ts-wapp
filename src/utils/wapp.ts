@@ -5,6 +5,7 @@
 */
 
 // Import Venom
+import { is } from 'ts-misc/dist/utils/guards'
 import Venom from 'venom-bot'
 import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
 
@@ -62,6 +63,7 @@ export default class Wapp {
   contactsList: Record<string, string>
   replyables: Record<string, TAExec>
   typeGuards: WhappTypeGuards
+  createConfig: Venom.CreateConfig
 
   constructor (bot: Bot) {
     Object.defineProperty(this, 'bot',
@@ -82,11 +84,23 @@ export default class Wapp {
   ##########################################################################################################################
   */
 
+  // Set Venom Options
+  async options(options: Venom.CreateConfig) {
+    if (!is.object(options)) return false
+    this.createConfig = options
+    return true
+  }
+
   // Start Whapp
   async start(session: string): Promise<boolean> {
     try { // Create Venom Instance
       const create = this.misc.handle.safe(Venom.create, Venom)
-      const [client, clientError] = await create(session)
+      const [client, clientError] = await create(
+        session,
+        null,
+        null,
+        this.createConfig
+      )
       // Check for Error
       if (clientError) throw clientError
       // Assign Client Object to Bot
