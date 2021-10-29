@@ -105,7 +105,7 @@ export default class API {
   }
 
   // Safe Request
-  async reqs(target: ITarget, data: any): Promise<[AxiosResponse<any>, Error]> {
+  async reqs(target: ITarget, data: any) {
     const req = this.misc.handle.safe(this.req, this)
     return req(target, data)
   }

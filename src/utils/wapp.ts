@@ -360,7 +360,7 @@ export default class Wapp {
     text: TFetchString,
     log?: TFetchString,
     quoteId?: TFetchString
-  ): Promise<[ISent, Error]> {
+  ) {
     const send = this.misc.handle.safe(this.send, this)
     return send(to, text, log, quoteId)
   }
