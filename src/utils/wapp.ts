@@ -85,7 +85,7 @@ export default class Wapp {
   */
 
   // Set Venom Options
-  async options(options: Venom.CreateConfig) {
+  async setOptions(options: Venom.CreateConfig) {
     if (!is.object(options)) return false
     this.createConfig = options
     return true
