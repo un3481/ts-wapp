@@ -5,9 +5,11 @@
 */
 
 // Import Venom
-import { is } from 'ts-misc/dist/utils/guards'
 import Venom from 'venom-bot'
 import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
+
+// Import Super-Guard
+import { is } from 'ts-misc/dist/utils/guards.js'
 
 // Import Bot Types
 import type Bot from '../index.js'
