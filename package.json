@@ -7,7 +7,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "transpile": "tsc -p tsconfig.json",
+    "transpile": "yarn install typescript && tsc -p tsconfig.json",
     "beautify": "js-beautify -r --editorconfig ./dist/**/*.{js,ts,tsx}",
     "build": "yarn transpile && yarn beautify",
     "preinstall": "yarn build && rmdir \"./src\" /s /q"
