@@ -8,7 +8,7 @@
 import Venom from 'venom-bot'
 
 // Import Interface Class
-import Interface from './interface'
+import Interface from './interface/index.js'
 
 // Import Super-Guard
 import { is } from 'ts-misc/dist/utils/guards.js'
