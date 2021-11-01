@@ -34,8 +34,8 @@ export type TFetchString = string | Promise<string> | (() => string | Promise<st
 export interface IMessage extends Venom.Message {
   readonly wapp: Wapp
   readonly quotedMsg: IMessage | undefined
-  send(msg: TFetchString, log?: TFetchString, quoteId?: TFetchString): Promise<IMessage>
-  quote(msg: TFetchString, log?: TFetchString): Promise<IMessage>
+  send(p: { text?: TFetchString, log?: TFetchString, quote?: TFetchString }): Promise<IMessage>
+  quote(p: { text?: TFetchString, log?: TFetchString }): Promise<IMessage>
   onReply(exec: TExec): boolean
   clean(): string
 }

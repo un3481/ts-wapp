@@ -201,13 +201,13 @@ export default class Wapp {
           async send(p: {
             text?: TFetchString,
             log?: TFetchString,
-            quoteId?: TFetchString
+            quote?: TFetchString
           }): Promise<IMessage> {
             return this.wapp.send({
               to: this.from,
               text: p.text,
               log: p.log,
-              quoteId: p.quoteId
+              quote: p.quote
             })
           },
           // Quote Message
@@ -218,7 +218,7 @@ export default class Wapp {
             return this.send({
               text: p.text,
               log: p.log,
-              quoteId: this.id
+              quote: this.id
             })
           },
           // Set On-Reply Action
@@ -253,7 +253,7 @@ export default class Wapp {
     to: TFetchString,
     text?: TFetchString,
     log?: TFetchString,
-    quoteId?: TFetchString
+    quote?: TFetchString
   }): Promise<IMessage> {
     // check if bot has started
     if (!this.interface.started) throw new Error('bot not started')
@@ -261,20 +261,20 @@ export default class Wapp {
     let to = await this.fetch(p.to)
     const text = await this.fetch(p.text)
     const log = await this.fetch(p.log)
-    const quoteId = await this.fetch(p.quoteId)
+    const quote = await this.fetch(p.quote)
     // check params consistency
     if (!is.string(to)) throw new Error('argument "to" not valid')
     if (!is.string(text)) throw new Error('argument "text" not valid')
     if (!is.string.or.null(log)) throw new Error('argument "log" not valid')
-    if (!is.string.or.null(quoteId)) throw new Error('argument "quoteId" not valid')
+    if (!is.string.or.null(quote)) throw new Error('argument "quoteId" not valid')
     // get number from contacts
     to = this.getContactByName(to)
     // send message
-    const result = (quoteId
+    const result = (quote
       ? await this.misc.handle.safe(
         this.interface.sendReply,
         this.interface
-      )({ to: to, text: text, quoteId: quoteId })
+      )({ to: to, text: text, quoteId: quote })
       : await this.misc.handle.safe(
         this.interface.sendText,
         this.interface
@@ -299,7 +299,7 @@ export default class Wapp {
     to: TFetchString,
     text?: TFetchString,
     log?: TFetchString,
-    quoteId?: TFetchString
+    quote?: TFetchString
   }) {
     const send = this.misc.handle.safe(this.send, this)
     return send(p)
