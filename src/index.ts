@@ -107,11 +107,14 @@ export default class Bot<N extends string = string> {
     // Add get_message Action
     this.api.add('get_message',
       async req => {
+        // check request
+        if (!is.object(req.body)) throw new Error('request not valid')
+        // eslint-disable-next-line camelcase
+        const { id } = req.body
         // Check Inputs
-        if (!is.in(req.body, 'id')) throw new Error('key "id" missing in request')
-        if (!is.string(req.body.id)) throw new Error('key "id" must be a string')
-        if (req.body.id.length === 0) throw new Error('key "id" not valid')
-        return this.wapp.getMessageById(req.body.id)
+        if (!is.string(id)) throw new Error('key "id" not valid')
+        if (id.length === 0) throw new Error('key "id" not valid')
+        return this.wapp.getMessageById(id)
       }
     )
 
