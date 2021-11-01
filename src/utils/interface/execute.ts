@@ -58,7 +58,7 @@ export default class Execute {
     const uSent = this.wapp.setMessage(message)
     const isGroup = uSent.isGroupMsg === true
     const ment = uSent.body.includes(`@${this.interface.me.user}`)
-    if (ment) await uSent.quote(this.bot.chat.gotMention, 'got_mention')
+    if (ment) await uSent.quote({ text: this.bot.chat.gotMention, log: 'got_mention' })
     if (is.object(uSent.quotedMsg)) return await this.onReply(uSent)
     const data = (ment || !isGroup) ? await this.doAction(uSent) : null
     return data
