@@ -22,8 +22,6 @@ import API from './utils/api.js'
 
 // Miscellaneous Type
 import Miscellaneous from 'ts-misc'
-
-// Import Super-Guard
 import { is } from 'ts-misc/dist/utils/guards.js'
 
 // New Miscellaneous Object
