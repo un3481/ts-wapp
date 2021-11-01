@@ -19,8 +19,9 @@ import type {
   TExec,
   TAExec,
   TFetchString,
-  ISent,
-  ITarget
+  IMessage,
+  ITarget,
+  WappHostDevice
 } from './types.js'
 
 /*
@@ -50,6 +51,7 @@ export default class Wapp {
   replyables: Record<string, TAExec>
   interface: Interface
   target: ITarget | null
+  me: WappHostDevice
 
   constructor (target: ITarget | Bot) {
     // Check Input
@@ -77,20 +79,22 @@ export default class Wapp {
   */
 
   // Add On-Reply Action
-  addReplyable(sentId: string, exec: TExec): boolean {
-    // Check if Executable is Function
+  addReplyable(id: string, exec: TExec): boolean {
+    if (!is.string(id)) return false
     if (!is.function(exec)) return false
-    this.replyables[sentId] = this.misc.handle.safe(exec)
+    this.replyables[id] = this.misc.handle.safe(exec)
     return true
   }
 
   // Get Venom-Bot Host
-  getHostDevice() {
-    return this.interface.client.getHostDevice()
+  async getHostDevice(): Promise<WappHostDevice> {
+    const hd = await this.interface.client.getHostDevice()
+    return { ...hd.wid, wappName: this.bot.name }
   }
 
   // Get Message
-  getMessageById(id: string) {
+  async getMessageById(id: string): Promise<IMessage> {
+    if (!is.string(id)) return
     return this.interface.getMessageById(id)
   }
 
@@ -106,7 +110,7 @@ export default class Wapp {
   }
 
   // Venom-Bot Started
-  get started() {
+  get started(): boolean {
     return this.interface.started
   }
 
@@ -169,7 +173,7 @@ export default class Wapp {
   */
 
   // Message Constructor
-  setMessage(sent: Venom.Message): ISent {
+  setMessage(sent: Venom.Message): IMessage {
     // Prevent Empty Message Objects
     if (!sent || !is.object(sent)) return
     // Fix Author on Private Messages
@@ -178,7 +182,7 @@ export default class Wapp {
     const wapp = this
     // Assign Message Properties
     const message = Object.defineProperties(
-      {} as ISent,
+      {} as IMessage,
       {
         ...Object.getOwnPropertyDescriptors(sent),
         ...Object.getOwnPropertyDescriptors({
@@ -198,7 +202,7 @@ export default class Wapp {
             text?: TFetchString,
             log?: TFetchString,
             quoteId?: TFetchString
-          }): Promise<ISent> {
+          }): Promise<IMessage> {
             return this.wapp.send({
               to: this.from,
               text: p.text,
@@ -210,7 +214,7 @@ export default class Wapp {
           async quote(p: {
             text?: TFetchString,
             log?: TFetchString
-          }): Promise<ISent> {
+          }): Promise<IMessage> {
             return this.send({
               text: p.text,
               log: p.log,
@@ -250,7 +254,7 @@ export default class Wapp {
     text?: TFetchString,
     log?: TFetchString,
     quoteId?: TFetchString
-  }): Promise<ISent> {
+  }): Promise<IMessage> {
     // check if bot has started
     if (!this.interface.started) throw new Error('bot not started')
     // fetch text data

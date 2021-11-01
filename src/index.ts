@@ -122,7 +122,7 @@ export default class Bot<N extends string = string> {
     this.api.add('host_device',
       async req => {
         const hd = await this.wapp.getHostDevice()
-        return { ...hd, name: this.bot.name }
+        return { ...hd, wappName: this.bot.name }
       }
     )
   }

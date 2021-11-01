@@ -1,6 +1,7 @@
 
 // Import Venom Type
 import type Venom from 'venom-bot'
+import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
 
 // Import Wapp Class
 import type Wapp from './wapp.js'
@@ -12,8 +13,8 @@ import type * as expressCore from 'express-serve-static-core'
 import type * as M from 'ts-misc/dist/utils/handle'
 
 // Exec Function Type
-export type TExec = (m: ISent) => unknown
-export type TAExec = (m: ISent) => M.TSafeAsyncReturn<unknown>
+export type TExec = (m: IMessage) => unknown
+export type TAExec = (m: IMessage) => M.TSafeAsyncReturn<unknown>
 
 // Interface Action Interface
 export type IAPIAction = (req: expressCore.Request) => unknown
@@ -30,17 +31,17 @@ export interface IAction {
 export type TFetchString = string | Promise<string> | (() => string | Promise<string>)
 
 // Sent Message Interface
-export interface ISent extends Venom.Message {
+export interface IMessage extends Venom.Message {
   readonly wapp: Wapp
-  readonly quotedMsg: ISent | undefined
-  send(msg: TFetchString, log?: TFetchString, quoteId?: TFetchString): Promise<ISent>
-  quote(msg: TFetchString, log?: TFetchString): Promise<ISent>
+  readonly quotedMsg: IMessage | undefined
+  send(msg: TFetchString, log?: TFetchString, quoteId?: TFetchString): Promise<IMessage>
+  quote(msg: TFetchString, log?: TFetchString): Promise<IMessage>
   onReply(exec: TExec): boolean
   clean(): string
 }
 
 // Sent Text Object
-export interface ISentTextObj {
+export interface IMessageTextObj {
   to: { _serialized: string }
 }
 
@@ -51,4 +52,8 @@ export interface ITarget {
     readonly user: string
     readonly password: string
   }
+}
+
+export interface WappHostDevice extends VenomHostDevice.Me {
+  wappName: string
 }

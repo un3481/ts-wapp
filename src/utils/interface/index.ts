@@ -6,7 +6,6 @@
 
 // Import Venom
 import Venom from 'venom-bot'
-import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
 
 // Import Execute
 import Execute from './execute.js'
@@ -18,8 +17,9 @@ import type * as M from 'ts-misc/dist/utils/types.js'
 // Import Bot Types
 import type Bot from '../../index.js'
 import type {
-  ISent,
-  ISentTextObj
+  IMessage,
+  IMessageTextObj,
+  WappHostDevice
 } from '../types.js'
 
 /*
@@ -29,7 +29,7 @@ import type {
 */
 
 // Check if Is Sent Text Object
-function isSentTextObj(is: M.Is, obj: unknown): obj is ISentTextObj {
+function isSentTextObj(is: M.Is, obj: unknown): obj is IMessageTextObj {
   // Check Object Properties
   if (!is.object(obj)) return false
   else if (!is.in(obj, 'to')) return false
@@ -48,7 +48,7 @@ function isSentTextObj(is: M.Is, obj: unknown): obj is ISentTextObj {
 export default class Interface {
   bot: Bot
   client: Venom.Whatsapp
-  me: VenomHostDevice.Me
+  me: WappHostDevice
   started: boolean
   createConfig: Venom.CreateConfig
   execute: Execute
@@ -113,8 +113,7 @@ export default class Interface {
     // Check for Client
     if (!this.client) return false
     // get host data
-    const hostDevice = await this.client.getHostDevice()
-    this.me = hostDevice.wid
+    this.me = await this.wapp.getHostDevice()
     // Set On-Message Function
     this.client.onMessage(msg => this.execute.onMessage(msg))
     // return done
@@ -128,7 +127,7 @@ export default class Interface {
   */
 
   // Get Message By Id
-  async getMessageById(id: string): Promise<ISent> {
+  async getMessageById(id: string): Promise<IMessage> {
     // Set Get-Message Function
     const getMessage = () => this.client.getMessageById(id)
     const checkMessage = (obj: unknown) => is.object(obj) && !obj.erro
@@ -150,7 +149,7 @@ export default class Interface {
   */
 
   // Send Text Method
-  async sendText(p: { to: string, text: string }): Promise<ISent> {
+  async sendText(p: { to: string, text: string }): Promise<IMessage> {
     // send message
     const sent = await this.client.sendText(p.to, p.text)
     if (!isSentTextObj(is, sent)) throw new Error('message not sent')
@@ -159,7 +158,7 @@ export default class Interface {
   }
 
   // Send Reply Method
-  async sendReply(p: { to: string, text: string, quoteId: string }): Promise<ISent> {
+  async sendReply(p: { to: string, text: string, quoteId: string }): Promise<IMessage> {
     // check if message exists
     const replyTarget = await this.getMessageById(p.quoteId)
     if (!replyTarget) p.quoteId = ''

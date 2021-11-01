@@ -15,7 +15,7 @@ import type Bot from '../../index.js'
 import type {
   IAction,
   TExec,
-  ISent
+  IMessage
 } from '../types.js'
 
 /*
@@ -38,7 +38,7 @@ export default class Execute {
 
   // Cycle Reference
   get execute() { return this }
-  get interface() { return this.bot.interface }
+  get interface() { return this.wapp.interface }
   get wapp() { return this.bot.wapp }
   get misc() { return this.bot.misc }
 
@@ -65,7 +65,7 @@ export default class Execute {
   }
 
   // Get Reply Method
-  async onReply(message: ISent) {
+  async onReply(message: IMessage) {
     // Check for Quoted-Message Object
     if (!message.quotedMsg) return
     const replyable = message.quotedMsg.id
@@ -81,7 +81,7 @@ export default class Execute {
   */
 
   // Execute Bot Command
-  async doAction(message: ISent): Promise<any> {
+  async doAction(message: IMessage): Promise<any> {
     // set initial
     let actionName: string
     try {

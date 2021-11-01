@@ -147,12 +147,12 @@ export default class API {
       // check request
       if (!is.object(req)) throw new Error('bad request')
       if (!is.object(req.body)) throw new Error('bad request')
-      if (!is.in(req.body, 'action')) throw new Error('key "action" missing in request')
-      if (!is.string(req.body.action)) throw new Error('key "action" must be a string')
-      if (req.body.action.length === 0) throw new Error('key "action" not valid')
-      if (!is.in(this.actions, req.body.action)) throw new Error('action not found')
-      // update reference
-      action = req.body.action
+      // get arguments
+      const { action } = req.body
+      // check arguments
+      if (!is.string(action)) throw new Error('key "action" not valid')
+      if (action.length === 0) throw new Error('key "action" not valid')
+      if (!is.in(this.actions, action)) throw new Error('action not found')
       // log action to be executed
       const ip = requestIp.getClientIp(req).replace('::ffff:', '')
       await this.bot.log(`Exec(api::${action}) From(${ip})`)
@@ -184,3 +184,9 @@ export default class API {
     return true
   }
 }
+
+/*
+##########################################################################################################################
+#                                                           END                                                          #
+##########################################################################################################################
+*/
