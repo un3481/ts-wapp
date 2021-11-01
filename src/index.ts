@@ -16,7 +16,7 @@
 */
 
 // Import Miscellaneous
-import Wapp from './utils/wapp.js'
+import Wapp, { isWhatsappTarget } from './utils/wapp.js'
 import Chat from './utils/chat.js'
 import API from './utils/api.js'
 
@@ -66,25 +66,24 @@ export default class Bot<N extends string = string> {
     // Add send_msg Action
     this.api.add('send_msg',
       async req => {
-        // get arguments
-        const to = req.body.to
-        const text = req.body.text
-        const log = req.body.log
-        const quoteId = req.body.quote_id
+        // check request
+        if (!is.object(req.body)) throw new Error('request not valid')
+        // eslint-disable-next-line camelcase
+        const { to, text, log, quote_id, referer } = req.body
         // check arguments
         if (!is.string(to)) throw new Error('key "to" not valid')
         if (!is.string.or.null(text)) throw new Error('key "text" not valid')
         if (!is.string.or.null(log)) throw new Error('key "log" not valid')
-        if (!is.string.or.null(quoteId)) throw new Error('key "quote_id" not valid')
+        if (!is.string.or.null(quote_id)) throw new Error('key "quote_id" not valid')
         // fix parameters
         const p = {
           to: to,
           text: text || 'empty message',
           log: log || 'api::send_msg',
-          quoteId: quoteId
+          quoteId: quote_id
         }
         // get referer
-        const referer = req.body.referer || null
+        const ref = isWhatsappTarget(referer) ? referer : null
         // send message
         const [sent, sendMessageError] = await this.bot.sends(p)
         // if not done prevent execution
@@ -93,10 +92,10 @@ export default class Bot<N extends string = string> {
         sent.onReply(async message => {
           const json = {
             action: 'on_reply',
-            msg_id: sent.id,
+            id: sent.id,
             reply: message
           }
-          const [data, onReplyError] = await this.api.reqs(referer, json)
+          const [data, onReplyError] = await this.api.reqs(ref, json)
           if (onReplyError) throw onReplyError
           return data
         })

@@ -14,7 +14,7 @@ import Interface from './interface'
 import { is } from 'ts-misc/dist/utils/guards.js'
 
 // Import Bot Types
-import type Bot from '../index.js'
+import Bot from '../index.js'
 import type {
   TExec,
   TAExec,
@@ -29,6 +29,21 @@ import type {
 ##########################################################################################################################
 */
 
+// Check Target Object
+export function isWhatsappTarget(obj: unknown): obj is ITarget {
+  if (!is.object(obj)) return false
+  if (!is.in(obj, 'addr', 'string')) return false
+  if (!is.in(obj, 'auth', 'object')) return false
+  if (!is.in(obj.auth, ['user', 'password'], 'string')) return false
+  return true
+}
+
+/*
+##########################################################################################################################
+#                                                         WHAPP CLASS                                                    #
+##########################################################################################################################
+*/
+
 export default class Wapp {
   bot: Bot
   contactsList: Record<string, string>
@@ -36,10 +51,15 @@ export default class Wapp {
   interface: Interface
   target: ITarget | null
 
-  constructor (bot: Bot) {
-    Object.defineProperty(this, 'bot',
-      { get() { return bot } }
-    )
+  constructor (target: ITarget | Bot) {
+    // Check Input
+    if (isWhatsappTarget(target)) {
+      this.target = target
+    } else if (target instanceof Bot) {
+      Object.defineProperty(this, 'bot',
+        { get() { return target } }
+      )
+    }
     // Set Replyables List
     this.replyables = {}
     // Nest Objects
