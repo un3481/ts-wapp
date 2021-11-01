@@ -17,6 +17,9 @@ import requestIp from 'request-ip'
 import axios from 'axios'
 import type { AxiosResponse } from 'axios'
 
+// Import Super-Guard
+import { is } from 'ts-misc/dist/utils/guards.js'
+
 // Import Action Interfaces
 import type { IAPIAction, IAAPIAction, ITarget } from './types.js'
 
@@ -141,7 +144,6 @@ export default class API {
   async execute(req: expressCore.Request) {
     let action: string
     try {
-      const is = this.misc.guards.is
       // check request
       if (!is.object(req)) throw new Error('bad request')
       if (!is.object(req.body)) throw new Error('bad request')
@@ -174,7 +176,6 @@ export default class API {
     name: string,
     func: IAPIAction
   ): boolean {
-    const is = this.misc.guards.is
     // Check Inputs
     if (!is.function(func)) return false
     if (!is.string(name)) return false

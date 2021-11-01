@@ -7,6 +7,11 @@
 // Imports
 import type Bot from '../index.js'
 import type { ISent } from './types.js'
+
+// Import Super-Guard
+import { is } from 'ts-misc/dist/utils/guards.js'
+
+// Import Misc Types
 import type * as M from 'ts-misc/dist/utils/types'
 
 /*
@@ -31,12 +36,11 @@ export default class Chat {
 
   // Clean Message
   clean(message: string | ISent, lower = true): string {
-    const is = this.misc.guards.is
     let str: string = ''
     if (is.string(message)) str = message
     else str = message.body
     str = lower ? str.toLowerCase() : str
-    str = str.replace(`@${this.bot.wapp.me.user}`, '')
+    str = str.replace(`@${this.bot.interf.me.user}`, '')
     while (str.includes('  ')) str = str.replace('  ', ' ')
     str = str.trim()
     str = str.normalize('NFD')
