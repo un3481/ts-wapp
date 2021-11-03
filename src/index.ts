@@ -136,9 +136,7 @@ export default class Bot<N extends string = string> {
 
   // Saves Log
   async log(log: string | Error): Promise<void> {
-    // Structure
-    const t = this.misc.sync.timestamp()
-    console.log(`(${t}) ${log}`)
+    return this.misc.logging.log(log)
   }
 
   /*
