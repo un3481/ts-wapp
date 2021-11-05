@@ -65,20 +65,20 @@ export default class Bot<N extends string = string> {
     this.api.add('send_msg',
       async req => {
         // check request
-        if (!is.object(req.body)) throw new Error('request not valid')
+        if (!is.object(req.body)) throw new Error('bad request')
         // eslint-disable-next-line camelcase
-        const { to, text, log, quote_id, referer } = req.body
+        const { to, text, log, quote, referer } = req.body
         // check arguments
         if (!is.string(to)) throw new Error('key "to" not valid')
         if (!is.string.or.null(text)) throw new Error('key "text" not valid')
         if (!is.string.or.null(log)) throw new Error('key "log" not valid')
-        if (!is.string.or.null(quote_id)) throw new Error('key "quote_id" not valid')
+        if (!is.string.or.null(quote)) throw new Error('key "quote" not valid')
         // fix parameters
         const p = {
           to: to,
           text: text || 'empty message',
           log: log || 'api::send_msg',
-          quoteId: quote_id
+          quote: quote
         }
         // get referer
         const ref = isWhatsappTarget(referer) ? referer : null
@@ -106,7 +106,7 @@ export default class Bot<N extends string = string> {
     this.api.add('get_message',
       async req => {
         // check request
-        if (!is.object(req.body)) throw new Error('request not valid')
+        if (!is.object(req.body)) throw new Error('bad request')
         // eslint-disable-next-line camelcase
         const { id } = req.body
         // Check Inputs
