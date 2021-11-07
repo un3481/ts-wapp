@@ -11,8 +11,7 @@ import type Bot from '../index.js'
 import { isWhatsappTarget } from './wapp.js'
 
 // Import Express
-import express from 'express'
-import type * as expressCore from 'express-serve-static-core'
+import express, { Express, Request, RequestHandler } from 'express'
 import basicAuth from 'express-basic-auth'
 import requestIp from 'request-ip'
 
@@ -36,7 +35,7 @@ import type { IAPIAction, IAAPIAction, ITarget } from './types.js'
 export default class NetworkWapp {
   bot: Bot
   auth: string
-  app: expressCore.Express
+  app: Express
   name: string
   users: Record<string, string>
 
@@ -69,7 +68,7 @@ export default class NetworkWapp {
   // Set Network API
   route(p: {
     name: string,
-    app: expressCore.Express
+    app: Express
   }): NetworkWapp {
     const { name, app } = p
     // Define App
@@ -132,7 +131,7 @@ export default class NetworkWapp {
   async execute(p: {
     name: string
     action: IAAPIAction
-    req: expressCore.Request
+    req: Request
   }) {
     const { name, action, req } = p
     try {
@@ -178,7 +177,7 @@ export default class NetworkWapp {
     this.app.post(
       `${this.name}/${name}`,
       basicAuth({ users: this.users }),
-      express.json() as expressCore.RequestHandler,
+      express.json() as RequestHandler,
       async (req, res) => {
         // Execute Functionality
         const response = await this.execute({
