@@ -16,13 +16,12 @@
 */
 
 // Import Miscellaneous
-import Wapp, { isWhatsappTarget } from './utils/wapp.js'
+import Wapp from './utils/wapp.js'
 import Chat from './utils/chat.js'
-import API from './utils/api.js'
+import Network from './utils/network.js'
 
 // Miscellaneous Type
 import Miscellaneous from 'ts-misc'
-import { is } from 'ts-misc/dist/utils/guards.js'
 
 // New Miscellaneous Object
 const misc = new Miscellaneous()
@@ -37,9 +36,9 @@ const misc = new Miscellaneous()
 export default class Bot<N extends string = string> {
   name: N
   misc: Miscellaneous
+  network: Network
   wapp: Wapp
   chat: Chat
-  api: API
 
   constructor (name: N) {
     // Set Bot Name
@@ -50,79 +49,10 @@ export default class Bot<N extends string = string> {
     // Nest Objects
     this.wapp = new Wapp(this)
     this.chat = new Chat(this)
-    this.api = new API(this)
-
-    /*
-    ##########################################################################################################################
-    #                                                         BOT CLASS                                                      #
-    ##########################################################################################################################
-    */
+    this.network = new Network(this)
 
     // Add else Method to Bot
     this.bot.add('else', msg => null)
-
-    // Add send_msg Action
-    this.api.add('send_msg',
-      async req => {
-        // check request
-        if (!is.object(req.body)) throw new Error('bad request')
-        // eslint-disable-next-line camelcase
-        const { to, text, log, quote, referer } = req.body
-        // check arguments
-        if (!is.string(to)) throw new Error('key "to" not valid')
-        if (!is.string.or.null(text)) throw new Error('key "text" not valid')
-        if (!is.string.or.null(log)) throw new Error('key "log" not valid')
-        if (!is.string.or.null(quote)) throw new Error('key "quote" not valid')
-        // fix parameters
-        const p = {
-          to: to,
-          text: text || 'empty message',
-          log: log || 'api::send_msg',
-          quote: quote
-        }
-        // get referer
-        const ref = isWhatsappTarget(referer) ? referer : null
-        // send message
-        const [sent, sendMessageError] = await this.bot.sends(p)
-        // if not done prevent execution
-        if (sendMessageError) throw sendMessageError
-        // set default reply action
-        sent.onReply(async message => {
-          const json = {
-            action: 'on_reply',
-            id: sent.id,
-            reply: message
-          }
-          const [data, onReplyError] = await this.api.reqs(ref, json)
-          if (onReplyError) throw onReplyError
-          return data
-        })
-        // return message
-        return sent
-      }
-    )
-
-    // Add get_message Action
-    this.api.add('get_message',
-      async req => {
-        // check request
-        if (!is.object(req.body)) throw new Error('bad request')
-        // eslint-disable-next-line camelcase
-        const { id } = req.body
-        // Check Inputs
-        if (!is.string(id)) throw new Error('key "id" not valid')
-        if (id.length === 0) throw new Error('key "id" not valid')
-        return this.wapp.getMessageById(id)
-      }
-    )
-
-    // Add host_device Action
-    this.api.add('host_device',
-      async req => {
-        const hd = await this.wapp.getHostDevice()
-        return { ...hd, wappName: this.bot.name }
-      }
-    )
   }
 
   /*
@@ -151,8 +81,8 @@ export default class Bot<N extends string = string> {
     await this.wapp.start(this.bot.name)
     // Check Started
     if (!this.wapp.started) return false
-    // Start Interface App
-    await this.api.start()
+    // Start Network API
+    this.network.assign()
     // Log Start of Bot
     await this.bot.log(`${this.bot.name}::started`)
     // return status

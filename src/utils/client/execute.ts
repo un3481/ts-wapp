@@ -38,7 +38,7 @@ export default class Execute {
 
   // Cycle Reference
   get execute() { return this }
-  get interface() { return this.wapp.interface }
+  get interface() { return this.wapp.client }
   get wapp() { return this.bot.wapp }
   get misc() { return this.bot.misc }
 

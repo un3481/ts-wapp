@@ -45,9 +45,9 @@ function isSentTextObj(is: M.Is, obj: unknown): obj is IMessageTextObj {
 ##########################################################################################################################
 */
 
-export default class Interface {
+export default class WhatsappClient {
   bot: Bot
-  client: Venom.Whatsapp
+  whatsapp: Venom.Whatsapp
   me: WappHostDevice
   started: boolean
   createConfig: Venom.CreateConfig
@@ -103,7 +103,7 @@ export default class Interface {
       // Check for Error
       if (clientError) throw clientError
       // Assign Client Object to Bot
-      this.client = client
+      this.whatsapp = client
       this.started = true
     // If Error Occurred
     } catch (error) {
@@ -111,11 +111,11 @@ export default class Interface {
       this.bot.log(`Throw(bot::start) Catch(${error})`)
     }
     // Check for Client
-    if (!this.client) return false
+    if (!this.whatsapp) return false
     // get host data
-    this.me = await this.wapp.getHostDevice()
+    this.me = await this.getHostDevice()
     // Set On-Message Function
-    this.client.onMessage(msg => this.execute.onMessage(msg))
+    this.whatsapp.onMessage(msg => this.execute.onMessage(msg))
     // return done
     return true
   }
@@ -126,10 +126,16 @@ export default class Interface {
   ##########################################################################################################################
   */
 
+  // Get Venom-Bot Host
+  async getHostDevice(): Promise<WappHostDevice> {
+    const hd = await this.whatsapp.getHostDevice()
+    return { ...hd.wid, wappName: this.bot.name }
+  }
+
   // Get Message By Id
   async getMessageById(id: string): Promise<IMessage> {
     // Set Get-Message Function
-    const getMessage = () => this.client.getMessageById(id)
+    const getMessage = () => this.whatsapp.getMessageById(id)
     const checkMessage = (obj: unknown) => is.object(obj) && !obj.erro
     const trial = this.misc.handle.repeat(
       getMessage.bind(this) as typeof getMessage,
@@ -150,20 +156,22 @@ export default class Interface {
 
   // Send Text Method
   async sendText(p: { to: string, text: string }): Promise<IMessage> {
+    const { to, text } = p
     // send message
-    const sent = await this.client.sendText(p.to, p.text)
+    const sent = await this.whatsapp.sendText(to, text)
     if (!isSentTextObj(is, sent)) throw new Error('message not sent')
     // get message by id
     return this.getMessageById(sent.to._serialized)
   }
 
   // Send Reply Method
-  async sendReply(p: { to: string, text: string, quoteId: string }): Promise<IMessage> {
+  async sendReply(p: { to: string, text: string, quote: string }): Promise<IMessage> {
+    const { to, text, quote } = p
     // check if message exists
-    const replyTarget = await this.getMessageById(p.quoteId)
-    if (!replyTarget) p.quoteId = ''
+    const replyTarget = await this.getMessageById(quote)
+    const quoteId = !is.null(replyTarget) ? quote : ''
     // send reply
-    const reply = await this.client.reply(p.to, p.text, p.quoteId)
+    const reply = await this.whatsapp.reply(to, text, quoteId)
     if (!isSentTextObj(is, reply)) throw new Error('message not sent')
     // get message by id
     return this.getMessageById(reply.to._serialized)

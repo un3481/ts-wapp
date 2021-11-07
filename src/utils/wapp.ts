@@ -8,7 +8,7 @@
 import Venom from 'venom-bot'
 
 // Import Interface Class
-import Interface from './interface/index.js'
+import Client from './client/index.js'
 
 // Import Super-Guard
 import { is } from 'ts-misc/dist/utils/guards.js'
@@ -49,7 +49,7 @@ export default class Wapp {
   bot: Bot
   contactsList: Record<string, string>
   replyables: Record<string, TAExec>
-  interface: Interface
+  client: Client
   target: ITarget | null
   me: WappHostDevice
 
@@ -65,7 +65,7 @@ export default class Wapp {
     // Set Replyables List
     this.replyables = {}
     // Nest Objects
-    this.interface = new Interface(this.bot)
+    this.client = new Client(this.bot)
   }
 
   // Cycle Reference
@@ -88,30 +88,29 @@ export default class Wapp {
 
   // Get Venom-Bot Host
   async getHostDevice(): Promise<WappHostDevice> {
-    const hd = await this.interface.client.getHostDevice()
-    return { ...hd.wid, wappName: this.bot.name }
+    return this.client.getHostDevice()
   }
 
   // Get Message
   async getMessageById(id: string): Promise<IMessage> {
-    if (!is.string(id)) return
-    return this.interface.getMessageById(id)
+    if (!is.string(id)) throw new Error('argument "id" not valid')
+    return this.client.getMessageById(id)
   }
 
   // Add Action
-  get add(): (typeof Interface.prototype.add) {
-    return this.interface.add
+  get add(): (typeof Client.prototype.add) {
+    return this.client.add
   }
 
   // Start Wapp
   async start(session: string): Promise<boolean> {
     if (!is.null(this.target)) return false
-    return this.interface.start(session)
+    return this.client.start(session)
   }
 
   // Venom-Bot Started
   get started(): boolean {
-    return this.interface.started
+    return this.client.started
   }
 
   /*
@@ -256,35 +255,38 @@ export default class Wapp {
     quote?: TFetchString
   }): Promise<IMessage> {
     // check if bot has started
-    if (!this.interface.started) throw new Error('bot not started')
+    if (!this.client.started) throw new Error('bot not started')
     // fetch text data
     let to = await this.fetch(p.to)
-    const text = await this.fetch(p.text)
-    const log = await this.fetch(p.log)
+    let text = await this.fetch(p.text)
+    let log = await this.fetch(p.log)
     const quote = await this.fetch(p.quote)
     // check params consistency
     if (!is.string(to)) throw new Error('argument "to" not valid')
-    if (!is.string(text)) throw new Error('argument "text" not valid')
+    if (!is.string.or.null(text)) throw new Error('argument "text" not valid')
     if (!is.string.or.null(log)) throw new Error('argument "log" not valid')
-    if (!is.string.or.null(quote)) throw new Error('argument "quoteId" not valid')
+    if (!is.string.or.null(quote)) throw new Error('argument "quote" not valid')
+    // fix parameters
+    text = text || ''
+    log = log || 'wapp::send'
     // get number from contacts
     to = this.getContactByName(to)
     // send message
     const result = (quote
       ? await this.misc.handle.safe(
-        this.interface.sendReply,
-        this.interface
-      )({ to: to, text: text, quoteId: quote })
+        this.client.sendReply,
+        this.client
+      )({ to: to, text: text, quote: quote })
       : await this.misc.handle.safe(
-        this.interface.sendText,
-        this.interface
+        this.client.sendText,
+        this.client
       )({ to: to, text: text })
     )
     // set message object
     const [data, sendMessageError] = result
     // check for error
     if (sendMessageError) {
-      await this.bot.log(`Throw(bot::send_msg) Catch(${sendMessageError})`)
+      await this.bot.log(`Throw(wapp::send) Catch(${sendMessageError})`)
       throw sendMessageError
     }
     // on success

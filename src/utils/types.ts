@@ -36,8 +36,10 @@ export interface IMessage extends Venom.Message {
   readonly quotedMsg: IMessage | undefined
   send(p: { text?: TFetchString, log?: TFetchString, quote?: TFetchString }): Promise<IMessage>
   quote(p: { text?: TFetchString, log?: TFetchString }): Promise<IMessage>
-  onReply(exec: TExec): boolean
   clean(): string
+  on: {
+    reply(exec: TExec): boolean
+  }
 }
 
 // Sent Text Object
@@ -47,11 +49,9 @@ export interface IMessageTextObj {
 
 // Target Interface
 export interface ITarget {
-  readonly addr: string
-  readonly auth: {
-    readonly user: string
-    readonly password: string
-  }
+  readonly address: string
+  readonly user: string
+  readonly password: string
 }
 
 export interface WappHostDevice extends VenomHostDevice.Me {
