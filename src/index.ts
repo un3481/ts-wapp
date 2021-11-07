@@ -48,8 +48,8 @@ export default class Bot<N extends string = string> {
 
     // Nest Objects
     this.wapp = new Wapp(this)
-    this.chat = new Chat(this)
     this.network = new Network(this)
+    this.chat = new Chat(this)
 
     // Add else Method to Bot
     this.bot.add('else', msg => null)
