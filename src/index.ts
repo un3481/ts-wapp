@@ -52,7 +52,10 @@ export default class Bot<N extends string = string> {
     this.chat = new Chat(this)
 
     // Add else Method to Bot
-    this.bot.add('else', msg => null)
+    this.bot.add({
+      action: 'else',
+      do: msg => null
+    })
   }
 
   /*
