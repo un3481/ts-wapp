@@ -36,7 +36,7 @@ export default class NetworkWapp {
   bot: Bot
   auth: string
   app: Express
-  name: string
+  routeAddress: string
   users: Record<string, string>
 
   constructor (bot: Bot) {
@@ -67,12 +67,12 @@ export default class NetworkWapp {
 
   // Set Network API
   route(p: {
-    name: string,
+    route: string,
     app: Express
   }): NetworkWapp {
-    const { name, app } = p
+    const { route, app } = p
     // Define App
-    this.name = name
+    this.routeAddress = route
     this.app = app
     return this
   }
@@ -129,20 +129,20 @@ export default class NetworkWapp {
 
   // Interface Execute Bot Command
   async execute(p: {
-    name: string
-    action: IAAPIAction
+    action: string
+    do: IAAPIAction
     req: Request
   }) {
-    const { name, action, req } = p
+    const { action, req } = p
     try {
       // check request
       if (!is.object(req)) throw new Error('bad request')
       if (!is.object(req.body)) throw new Error('bad request')
       // log action to be executed
       const ip = requestIp.getClientIp(req).replace('::ffff:', '')
-      await this.bot.log(`Exec(network::${name}) From(${ip})`)
+      await this.bot.log(`Exec(network::${action}) From(${ip})`)
       // execute action
-      const [data, actionError] = await action(req)
+      const [data, actionError] = await p.do(req)
       // throw action error
       if (actionError) throw actionError
       // resolve with data
@@ -150,7 +150,7 @@ export default class NetworkWapp {
     // if error occurred
     } catch (error) {
       // log error
-      await this.bot.log(`Throw(network::${name}) Catch(${error})`)
+      await this.bot.log(`Throw(network::${action}) Catch(${error})`)
       // reject with error
       return { done: false, error: error }
     }
@@ -163,26 +163,27 @@ export default class NetworkWapp {
   */
 
   // Add Bot Interface Action
-  add(
-    name: string,
-    action: IAPIAction
-  ): boolean {
+  add(p: {
+    action: string,
+    do: IAPIAction
+  }): boolean {
+    const { action } = p
     // Check Inputs
-    if (!is.function(action)) return false
-    if (!is.string(name)) return false
-    if (name.length === 0) return false
+    if (!is.function(p.do)) return false
+    if (!is.string(action)) return false
+    if (action.length === 0) return false
     // Set Safe Action
-    const sAction = this.misc.handle.safe(action)
+    const dosafe = this.misc.handle.safe(p.do)
     // Set Bot Interface
     this.app.post(
-      `${this.name}/${name}`,
+      `${this.routeAddress}/${action}`,
       basicAuth({ users: this.users }),
       express.json() as RequestHandler,
       async (req, res) => {
         // Execute Functionality
         const response = await this.execute({
-          name: name,
-          action: sAction,
+          action: action,
+          do: dosafe,
           req: req
         })
         // Send Response
@@ -202,8 +203,9 @@ export default class NetworkWapp {
 
   assign() {
     // Add send-message Action
-    this.network.add('send',
-      async req => {
+    this.network.add({
+      action: 'send',
+      do: async req => {
         // check request
         if (!is.object(req.body)) throw new Error('bad request')
         // eslint-disable-next-line camelcase
@@ -244,11 +246,12 @@ export default class NetworkWapp {
         // return message
         return sent
       }
-    )
+    })
 
     // Add get-message Action
-    this.network.add('getMessageById',
-      async req => {
+    this.network.add({
+      action: 'getMessageById',
+      do: async req => {
         // check request
         if (!is.object(req.body)) throw new Error('bad request')
         // eslint-disable-next-line camelcase
@@ -258,14 +261,15 @@ export default class NetworkWapp {
         if (id.length === 0) throw new Error('key "id" not valid')
         return this.wapp.getMessageById(id)
       }
-    )
+    })
 
     // Add host-device Action
-    this.network.add('getHostDevice',
-      async req => {
+    this.network.add({
+      action: 'getHostDevice',
+      do: async req => {
         return this.wapp.getHostDevice()
       }
-    )
+    })
 
     // Return Done
     return true

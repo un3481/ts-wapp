@@ -87,8 +87,8 @@ export default class Execute {
     try {
       // Check All Action Conditions
       for (const action of Object.values(this.actions)) {
-        if (action.cond && action.name !== 'else') {
-          const [cond, condError] = await action.cond(message)
+        if (action.condition && action.name !== 'else') {
+          const [cond, condError] = await action.condition(message)
           if (cond && !condError) {
             actionName = action.name
             this.bot.log(`Exec(bot::${action.name}) From(${message.from})`)
@@ -119,33 +119,32 @@ export default class Execute {
   */
 
   // Add Bot Action
-  add<N extends string>(
-    name: N,
-    ...params: N extends 'else'
-      ? [exec: TExec]
-      : [exec: TExec, success: TExec]
-  ) {
+  add(p: {
+    action: string,
+    condition?: TExec
+    do: TExec
+  }) {
     // Get Params
-    const [exec, success] = params
+    const { action, condition } = p
     // Check Inputs
-    if (!is.function(exec)) return false
-    if (success && !is.function(success)) return false
-    if (!is.string(name)) return false
-    if (name.length === 0) return false
+    if (!is.function(p.do)) return false
+    if (!is.function.or.null(condition)) return false
+    if (!is.string(action)) return false
+    if (action.length === 0) return false
     // Execute Action
-    let action: IAction
-    action = {
-      name: name,
-      cond: this.misc.handle.safe(exec),
-      do: this.misc.handle.safe(success)
+    let push: IAction
+    push = {
+      name: action,
+      condition: this.misc.handle.safe(condition),
+      do: this.misc.handle.safe(p.do)
     }
-    if (name === 'else') {
-      action = {
-        name: name,
-        do: this.misc.handle.safe(exec)
+    if (action === 'else') {
+      push = {
+        name: action,
+        do: this.misc.handle.safe(p.do)
       }
     }
-    this.actions[name] = action
+    this.actions[action] = push
     return true
   }
 }

@@ -23,8 +23,8 @@ export type IAAPIAction = (req: expressCore.Request) => M.TSafeAsyncReturn<unkno
 // Action Interface
 export interface IAction {
   readonly name: string,
-  cond?: TAExec,
-  do: TAExec
+  readonly condition?: TAExec,
+  readonly do: TAExec
 }
 
 // Message Text Type
