@@ -77,16 +77,6 @@ export default class NetworkWapp {
     return this
   }
 
-  // Set Basic-Auth User
-  addUser(p: {
-    user: string,
-    password: string
-  }): NetworkWapp {
-    const { user, password } = p
-    this.users[user] = password
-    return this
-  }
-
   /*
   ##########################################################################################################################
   #                                                    API EXECUTION METHODS                                               #
