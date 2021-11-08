@@ -127,41 +127,6 @@ export default class NetworkWapp {
   ##########################################################################################################################
   */
 
-  // Interface Execute Bot Command
-  async execute(p: {
-    action: string
-    do: IAAPIAction
-    req: Request
-  }) {
-    const { action, req } = p
-    try {
-      // check request
-      if (!is.object(req)) throw new Error('bad request')
-      if (!is.object(req.body)) throw new Error('bad request')
-      // log action to be executed
-      const ip = requestIp.getClientIp(req).replace('::ffff:', '')
-      await this.bot.log(`Exec(network::${action}) From(${ip})`)
-      // execute action
-      const [data, actionError] = await p.do(req)
-      // throw action error
-      if (actionError) throw actionError
-      // resolve with data
-      return { done: true, data: data }
-    // if error occurred
-    } catch (error) {
-      // log error
-      await this.bot.log(`Throw(network::${action}) Catch(${error})`)
-      // reject with error
-      return { done: false, error: error }
-    }
-  }
-
-  /*
-  ##########################################################################################################################
-  #                                                    API EXECUTION METHODS                                               #
-  ##########################################################################################################################
-  */
-
   // Add Bot Interface Action
   add(p: {
     action: string,
@@ -193,6 +158,40 @@ export default class NetworkWapp {
       }
     )
     return true
+  }
+
+  /*
+  ##########################################################################################################################
+  #                                                    API EXECUTION METHODS                                               #
+  ##########################################################################################################################
+  */
+
+  // Interface Execute Bot Command
+  async execute(p: {
+    action: string
+    do: IAAPIAction
+    req: Request
+  }) {
+    const { action, req } = p
+    try {
+      // check request
+      if (!is.object(req)) throw new Error('bad request')
+      // log action to be executed
+      const ip = requestIp.getClientIp(req).replace('::ffff:', '')
+      await this.bot.log(`Exec(network::${action}) From(${ip})`)
+      // execute action
+      const [data, actionError] = await p.do(req)
+      // throw action error
+      if (actionError) throw actionError
+      // resolve with data
+      return { done: true, data: data }
+    // if error occurred
+    } catch (error) {
+      // log error
+      await this.bot.log(`Throw(network::${action}) Catch(${error})`)
+      // reject with error
+      return { done: false, error: error }
+    }
   }
 
   /*
