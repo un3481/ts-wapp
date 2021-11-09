@@ -31,11 +31,15 @@ import type {
 */
 
 // Check Target Object
-export function isWhatsappTarget(obj: unknown): obj is ITarget {
+export function isWhatsappTarget(
+  obj: unknown
+): obj is ITarget {
   if (!is.object(obj)) return false
-  if (!is.in(obj, 'addr', 'string')) return false
-  if (!is.in(obj, 'auth', 'object')) return false
-  if (!is.in(obj.auth, ['user', 'password'], 'string')) return false
+  if (!is.in(
+    obj,
+    ['address', 'user', 'password'],
+    'string'
+  )) return false
   return true
 }
 
@@ -51,7 +55,6 @@ export default class Wapp {
   replyables: Record<string, TAExec>
   client: Client
   target: ITarget | null
-  me: WappHostDevice
 
   constructor (target: ITarget | Bot) {
     // Check Input
@@ -111,6 +114,11 @@ export default class Wapp {
   // Venom-Bot Started
   get started(): boolean {
     return this.client.started
+  }
+
+  // Host Device
+  get me(): WappHostDevice {
+    return this.client.me
   }
 
   /*
