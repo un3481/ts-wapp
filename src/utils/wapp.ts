@@ -197,7 +197,11 @@ export default class Wapp {
           from: wapp.getContactByName(sent.from, -1),
           author: wapp.getContactByName(sent.author, -1),
           // Fix Quoted Message Object
-          quotedMsg: sent.quotedMsgObj ? wapp.setMessage(sent.quotedMsgObj) : null,
+          quotedMsg: (
+            is.in(sent, 'quotedMsgObj', 'object')
+              ? wapp.setMessage(sent.quotedMsgObj)
+              : null
+          ),
           quotedMsgObj: sent.quotedMsgObj,
           // Send Message to Chat
           async send(p: {

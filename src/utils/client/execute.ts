@@ -52,24 +52,31 @@ export default class Execute {
   // Get Message Method
   async onMessage(message: Venom.Message): Promise<unknown> {
     // Prevent execution if bot not
-    console.log('message printed')
     if (!this.client.started) return
-    else if (!is.object(message)) return
-    else if (!is.in(message, 'body')) return
-    else if (message.from === 'status@broadcast') return
+    // Check Parameter
+    if (!is.object(message)) return
+    if (!is.in(message, 'body')) return
+    // Prevent Broadcast
+    if (message.from === 'status@broadcast') return
+    // Set Message Object
     const sent = this.wapp.setMessage(message)
+    // Check for Group Message
     const isGroup = sent.isGroupMsg === true
+    // Check Mentioned
     const ment = sent.body.includes(`@${this.client.me.user}`)
     if (ment) await sent.quote({ text: this.bot.chat.gotMention, log: 'got_mention' })
-    if (is.object(sent.quotedMsg)) return await this.onReply(sent)
+    // Check Quoted Message
+    if (is.in(sent, 'quotedMsg', 'object')) return await this.onReply(sent)
+    // Execute Actions
     const data = (ment || !isGroup) ? await this.do(sent) : null
+    // Return Data
     return data
   }
 
   // Get Reply Method
   async onReply(message: IMessage): TSafeAsyncReturn<unknown> {
     // Check for Quoted-Message Object
-    if (!message.quotedMsg) return
+    if (!message.quotedMsg) throw new Error('invalid parameter "message"')
     const replyable = message.quotedMsg.id
     if (is.in(this.wapp.replyables, replyable)) {
       return this.wapp.replyables[replyable](message)
