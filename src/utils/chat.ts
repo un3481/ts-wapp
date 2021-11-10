@@ -40,7 +40,7 @@ export default class Chat {
     if (is.string(message)) str = message
     else str = message.body
     str = lower ? str.toLowerCase() : str
-    str = str.replace(`@${this.bot.wapp.me.user}`, '')
+    str = str.replace(`@${this.bot.me.user}`, '')
     while (str.includes('  ')) str = str.replace('  ', ' ')
     str = str.trim()
     str = str.normalize('NFD')
