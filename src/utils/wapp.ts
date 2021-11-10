@@ -51,7 +51,7 @@ export function isWhatsappTarget(
 
 export default class Wapp {
   bot: Bot
-  contactsList: Record<string, string>
+  contacts: Record<string, string>
   replyables: Record<string, TAExec>
   client: Client
   target: ITarget | null
@@ -140,21 +140,12 @@ export default class Wapp {
     return resolution
   }
 
-  // Set Contacts List
-  setContactsList(
-    contactsList: Record<string, string>
-  ) {
-    if (!is.every(contactsList, 'string')) return false
-    Object.assign(this.contactsList, contactsList)
-    return true
-  }
-
   // Get Contact Number by Name
   getContactByName(to: string, flag?: number): string {
     let contact = `${to}`
     // Get Contacts List
     let contacts = this.misc.sets.serialize(
-      this.contactsList
+      this.contacts
     )
     // Switch Key-Value Pairs
     if (flag === -1) {
