@@ -88,7 +88,7 @@ export default class Bot<N extends string = string> {
     // Start Wapp Services
     await this.wapp.start(this.bot.name)
     // Check Started
-    if (!this.wapp.started) return false
+    if (!this.wapp.started) throw new Error('bot not started')
     // Start Network API
     this.network.assign()
     // Log Start of Bot

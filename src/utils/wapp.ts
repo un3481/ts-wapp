@@ -85,10 +85,11 @@ export default class Wapp {
   */
 
   // Add On-Reply Action
-  addReplyable(id: string, exec: TExec): boolean {
-    if (!is.string(id)) return false
-    if (!is.function(exec)) return false
-    this.replyables[id] = this.misc.handle.safe(exec)
+  addReplyable(p: { id: string, do: TExec }): boolean {
+    const { id } = p
+    if (!is.string(id)) throw new Error('invalid argument "id"')
+    if (!is.function(p.do)) throw new Error('invalid argument "do"')
+    this.replyables[id] = this.misc.handle.safe(p.do)
     return true
   }
 
@@ -110,7 +111,7 @@ export default class Wapp {
 
   // Start Wapp
   async start(session: string): Promise<boolean> {
-    if (!is.null(this.target)) return false
+    if (!is.null(this.target)) throw new Error('target reference selected: you should not start venom')
     return this.client.start(session)
   }
 
@@ -176,7 +177,7 @@ export default class Wapp {
   // Message Constructor
   setMessage(sent: Venom.Message): IMessage {
     // Prevent Empty Message Objects
-    if (!sent || !is.object(sent)) return
+    if (!sent || !is.object(sent)) throw new Error('invalid argument "sent"')
     // Fix Author on Private Messages
     if (!sent.isGroupMsg) sent.author = sent.from
     // Allow Cyclic Reference
@@ -225,9 +226,12 @@ export default class Wapp {
           // Set On-Reply Action
           get on() {
             return {
-              reply(exec: TExec): boolean {
-                if (!is.function(exec)) return false
-                wapp.addReplyable(this.id, exec)
+              reply(execute: TExec) {
+                if (!is.function(execute)) throw new Error('invalid argument "execute"')
+                wapp.addReplyable({
+                  id: this.id,
+                  do: execute
+                })
                 return true
               }
             }

@@ -80,13 +80,6 @@ export default class WhatsappClient {
   ##########################################################################################################################
   */
 
-  // Set Venom Options
-  async setOptions(options: Venom.CreateConfig) {
-    if (!is.object(options)) return false
-    this.createConfig = options
-    return true
-  }
-
   // Start Interface
   async start(session: string): Promise<boolean> {
     try { // Create Venom Instance
@@ -108,7 +101,7 @@ export default class WhatsappClient {
       this.bot.log(`Throw(client::start) Catch(${error})`)
     }
     // Check for Client
-    if (!this.whatsapp) return false
+    if (!this.whatsapp) throw new Error('venom client not started')
     // get host data
     this.me = await this.getHostDevice()
     // Set On-Message Function

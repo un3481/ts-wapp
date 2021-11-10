@@ -124,9 +124,9 @@ export default class NetworkWapp {
   }): boolean {
     const { action } = p
     // Check Inputs
-    if (!is.function(p.do)) return false
-    if (!is.string(action)) return false
-    if (action.length === 0) return false
+    if (!is.function(p.do)) throw new Error('invalid argument "do"')
+    if (!is.string(action)) throw new Error('invalid argument "action"')
+    if (action.length === 0) throw new Error('invalid argument "action"')
     // Set Safe Action
     const dosafe = this.misc.handle.safe(p.do)
     // Set Bot Interface
