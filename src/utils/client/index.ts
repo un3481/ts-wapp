@@ -126,7 +126,9 @@ export default class WhatsappClient {
   async getMessageById(id: string): Promise<IMessage> {
     // Set Get-Message Function
     const getMessage = () => this.whatsapp.getMessageById(id)
-    const checkMessage = (obj: unknown) => is.object(obj) && !obj.erro
+    const checkMessage = (obj: unknown) => (
+      is.object(obj) && (!is.in(obj, 'erro') || !(obj.erro))
+    )
     const trial = this.misc.handle.repeat(
       getMessage.bind(this) as typeof getMessage,
       checkMessage.bind(this)

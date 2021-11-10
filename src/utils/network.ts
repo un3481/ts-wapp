@@ -198,7 +198,9 @@ export default class NetworkWapp {
         // check request
         if (!is.object(req.body)) throw new Error('bad request')
         // eslint-disable-next-line camelcase
-        const { to, text, log, quote, referer } = req.body
+        const { to, text, log, quote, referer } = req.body as {
+          to: unknown, text: unknown, log: unknown, quote: unknown, referer: unknown
+        }
         // check arguments
         if (!is.string(to)) throw new Error('key "to" not valid')
         if (!is.string.or.null(text)) throw new Error('key "text" not valid')
@@ -242,9 +244,9 @@ export default class NetworkWapp {
       action: 'getMessageById',
       do: async req => {
         // check request
-        if (!is.object(req.body)) throw new Error('bad request')
+        if (!is.in(req, 'body', 'object')) throw new Error('bad request')
         // eslint-disable-next-line camelcase
-        const { id } = req.body
+        const { id } = req.body as { id: unknown }
         // Check Inputs
         if (!is.string(id)) throw new Error('key "id" not valid')
         if (id.length === 0) throw new Error('key "id" not valid')

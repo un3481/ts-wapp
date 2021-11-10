@@ -3665,8 +3665,8 @@ truncate-utf8-bytes@^1.0.0:
     utf8-byte-length "^1.0.1"
 
 ts-misc@anthony-freitas/ts-misc:
-  version "1.6.1"
-  resolved "https://codeload.github.com/anthony-freitas/ts-misc/tar.gz/533f08bfc58bc9278ea59f3ab25880a004188f28"
+  version "1.6.4"
+  resolved "https://codeload.github.com/anthony-freitas/ts-misc/tar.gz/4155fdbde824f051ff9054385cbc74e8dcd3eaaa"
   dependencies:
     js-beautify "^1.13.5"
     prettier "^2.2.1"

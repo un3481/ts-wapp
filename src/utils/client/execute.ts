@@ -64,11 +64,21 @@ export default class Execute {
     const isGroup = sent.isGroupMsg === true
     // Check Mentioned
     const ment = sent.body.includes(`@${this.client.me.user}`)
-    if (ment) await sent.quote({ text: this.bot.chat.gotMention, log: 'got_mention' })
+    if (ment) {
+      await sent.quote({
+        text: this.bot.chat.gotMention,
+        log: 'got_mention'
+      })
+    }
     // Check Quoted Message
-    if (is.in(sent, 'quotedMsg', 'object')) return await this.onReply(sent)
+    if (is.in(sent, 'quotedMsg', 'object')) {
+      return await this.onReply(sent)
+    }
     // Execute Actions
-    const data = (ment || !isGroup) ? await this.do(sent) : null
+    let data = null
+    if (ment || !isGroup) {
+      data = await this.do(sent)
+    }
     // Return Data
     return data
   }
@@ -76,7 +86,9 @@ export default class Execute {
   // Get Reply Method
   async onReply(message: IMessage): TSafeAsyncReturn<unknown> {
     // Check for Quoted-Message Object
-    if (!message.quotedMsg) throw new Error('invalid parameter "message"')
+    if (!is.in(message, 'quotedMsg', 'object')) {
+      throw new Error('invalid parameter "message"')
+    }
     const replyable = message.quotedMsg.id
     if (is.in(this.wapp.replyables, replyable)) {
       return this.wapp.replyables[replyable](message)
