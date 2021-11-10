@@ -131,7 +131,7 @@ export default class NetworkWapp {
     const dosafe = this.misc.handle.safe(p.do)
     // Set Bot Interface
     this.app.post(
-      `${this.routeAddress}/${action}`,
+      `/${this.routeAddress}/${action}/`,
       basicAuth({ users: this.users }),
       express.json() as RequestHandler,
       async (req, res) => {
