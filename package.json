@@ -1,7 +1,7 @@
 {
   "name": "ts-wapp",
   "author": "anthony",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "HTTP Rest API for Whatsapp Bot (venom-bot wrapper)",
   "license": "MIT",
   "type": "module",
