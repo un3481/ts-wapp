@@ -87,7 +87,7 @@ export default class Execute {
   async onReply(message: IMessage): TSafeAsyncReturn<unknown> {
     // Check for Quoted-Message Object
     if (!is.in(message, 'quotedMsg', 'object')) {
-      throw new Error('invalid parameter "message"')
+      throw new Error('invalid argument "message"')
     }
     const replyable = message.quotedMsg.id
     if (is.in(this.wapp.replyables, replyable)) {
@@ -148,10 +148,10 @@ export default class Execute {
     // Get Params
     const { action, condition } = p
     // Check Inputs
-    if (!is.function(p.do)) throw new Error('invalid argment "do"')
-    if (!is.function.or.null(condition)) throw new Error('invalid argment "condition"')
-    if (!is.string(action)) throw new Error('invalid argment "action"')
-    if (action.length === 0) throw new Error('invalid argment "action"')
+    if (!is.function(p.do)) throw new Error('invalid argument "do"')
+    if (!is.function.or.null(condition)) throw new Error('invalid argument "condition"')
+    if (!is.string(action)) throw new Error('invalid argument "action"')
+    if (action.length === 0) throw new Error('invalid argument "action"')
     // Execute Action
     let push: IAction
     push = {

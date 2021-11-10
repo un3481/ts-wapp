@@ -100,7 +100,7 @@ export default class Wapp {
 
   // Get Message
   async getMessageById(id: string): Promise<IMessage> {
-    if (!is.string(id)) throw new Error('argument "id" not valid')
+    if (!is.string(id)) throw new Error('invalid argument "id"')
     return this.client.getMessageById(id)
   }
 
@@ -233,7 +233,7 @@ export default class Wapp {
               reply(execute: TExec) {
                 if (!is.function(execute)) throw new Error('invalid argument "execute"')
                 wapp.addReplyable({
-                  id: this.id,
+                  id: sent.id,
                   do: execute
                 })
                 return true
@@ -272,10 +272,10 @@ export default class Wapp {
     let log = await this.fetch(p.log)
     const quote = await this.fetch(p.quote)
     // check params consistency
-    if (!is.string(to)) throw new Error('argument "to" not valid')
-    if (!is.string.or.null(text)) throw new Error('argument "text" not valid')
-    if (!is.string.or.null(log)) throw new Error('argument "log" not valid')
-    if (!is.string.or.null(quote)) throw new Error('argument "quote" not valid')
+    if (!is.string(to)) throw new Error('invalid argument "to"')
+    if (!is.string.or.null(text)) throw new Error('invalid argument "text"')
+    if (!is.string.or.null(log)) throw new Error('invalid argument "log"')
+    if (!is.string.or.null(quote)) throw new Error('invalid argument "quote"')
     // fix parameters
     text = text || ''
     log = log || 'wapp::send'

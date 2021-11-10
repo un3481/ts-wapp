@@ -202,10 +202,10 @@ export default class NetworkWapp {
           to: unknown, text: unknown, log: unknown, quote: unknown, referer: unknown
         }
         // check arguments
-        if (!is.string(to)) throw new Error('key "to" not valid')
-        if (!is.string.or.null(text)) throw new Error('key "text" not valid')
-        if (!is.string.or.null(log)) throw new Error('key "log" not valid')
-        if (!is.string.or.null(quote)) throw new Error('key "quote" not valid')
+        if (!is.string(to)) throw new Error('invalid argument "to"')
+        if (!is.string.or.null(text)) throw new Error('invalid argument "text"')
+        if (!is.string.or.null(log)) throw new Error('invalid argument "log"')
+        if (!is.string.or.null(quote)) throw new Error('invalid argument "quote"')
         // fix parameters
         const p = {
           to: to,
@@ -248,8 +248,8 @@ export default class NetworkWapp {
         // eslint-disable-next-line camelcase
         const { id } = req.body as { id: unknown }
         // Check Inputs
-        if (!is.string(id)) throw new Error('key "id" not valid')
-        if (id.length === 0) throw new Error('key "id" not valid')
+        if (!is.string(id)) throw new Error('invalid argument "id"')
+        if (id.length === 0) throw new Error('invalid argument "id"')
         return this.wapp.getMessageById(id)
       }
     })
