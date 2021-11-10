@@ -177,7 +177,7 @@ export default class Wapp {
   // Message Constructor
   setMessage(sent: Venom.Message): IMessage {
     // Prevent Empty Message Objects
-    if (!sent || !is.object(sent)) throw new Error('invalid argument "sent"')
+    if (!is.object(sent)) throw new Error('invalid argument "sent"')
     // Fix Author on Private Messages
     if (!sent.isGroupMsg) sent.author = sent.from
     // Allow Cyclic Reference
@@ -197,7 +197,7 @@ export default class Wapp {
           from: wapp.getContactByName(sent.from, -1),
           author: wapp.getContactByName(sent.author, -1),
           // Fix Quoted Message Object
-          quotedMsg: wapp.setMessage(sent.quotedMsgObj),
+          quotedMsg: sent.quotedMsgObj ? wapp.setMessage(sent.quotedMsgObj) : null,
           quotedMsgObj: sent.quotedMsgObj,
           // Send Message to Chat
           async send(p: {
