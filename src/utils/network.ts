@@ -168,7 +168,7 @@ export default class NetworkWapp {
       if (!is.object(req)) throw new Error('bad request')
       // log action to be executed
       const ip = requestIp.getClientIp(req).replace('::ffff:', '')
-      await this.bot.log(`Exec(network::${action}) From(${ip})`)
+      await this.bot.log(`Exec(network::actions[${action}]) From(${ip})`)
       // execute action
       const [data, actionError] = await p.do(req)
       // throw action error
@@ -178,9 +178,9 @@ export default class NetworkWapp {
     // if error occurred
     } catch (error) {
       // log error
-      await this.bot.log(`Throw(network::${action}) Catch(${error})`)
+      await this.bot.log(`Throw(network::actions[${action}]) Catch(${error})`)
       // reject with error
-      return { done: false, error: error }
+      return { done: false, error: `${error}` }
     }
   }
 
