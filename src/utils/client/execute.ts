@@ -51,7 +51,8 @@ export default class Execute {
 
   // Get Message Method
   async onMessage(message: Venom.Message): Promise<unknown> {
-    // Prevent execution if bot not started
+    // Prevent execution if bot not
+    console.log('message printed')
     if (!this.client.started) return
     else if (!is.object(message)) return
     else if (!is.in(message, 'body')) return

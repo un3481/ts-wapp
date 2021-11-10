@@ -102,10 +102,10 @@ export default class WhatsappClient {
     }
     // Check for Client
     if (!this.whatsapp) throw new Error('venom client not started')
-    // get host data
-    this.me = await this.getHostDevice()
     // Set On-Message Function
     this.whatsapp.onMessage(msg => this.execute.onMessage(msg))
+    // get host data
+    this.me = await this.getHostDevice()
     // return done
     return true
   }
