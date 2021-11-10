@@ -61,14 +61,17 @@ export default class Wapp {
     if (isWhatsappTarget(target)) {
       this.target = target
     } else if (target instanceof Bot) {
+      this.target = null
       Object.defineProperty(this, 'bot',
         { get() { return target } }
       )
     }
+    // Instance Client
+    this.client = new Client(this.bot)
+    // Set Contacts List
+    this.contacts = {}
     // Set Replyables List
     this.replyables = {}
-    // Nest Objects
-    this.client = new Client(this.bot)
   }
 
   // Cycle Reference
