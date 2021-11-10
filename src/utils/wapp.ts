@@ -116,11 +116,6 @@ export default class Wapp {
     return this.client.started
   }
 
-  // Host Device
-  get me(): WappHostDevice {
-    return this.client.me
-  }
-
   /*
   ##########################################################################################################################
   #                                                    AUXILIARY METHODS                                                   #
@@ -146,8 +141,11 @@ export default class Wapp {
   }
 
   // Set Contacts List
-  setContactsList(contactsList: Record<string, string>) {
-    this.contactsList = contactsList
+  setContactsList(
+    contactsList: Record<string, string>
+  ) {
+    if (!is.every(contactsList, 'string')) return false
+    Object.assign(this.contactsList, contactsList)
     return true
   }
 
@@ -155,7 +153,9 @@ export default class Wapp {
   getContactByName(to: string, flag?: number): string {
     let contact = `${to}`
     // Get Contacts List
-    let contacts = this.misc.sets.serialize(this.contactsList)
+    let contacts = this.misc.sets.serialize(
+      this.contactsList
+    )
     // Switch Key-Value Pairs
     if (flag === -1) {
       contacts = Object.entries(contacts)

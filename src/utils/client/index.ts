@@ -12,7 +12,6 @@ import Execute from './execute.js'
 
 // Import Super-Guard
 import { is } from 'ts-misc/dist/utils/guards.js'
-import type * as M from 'ts-misc/dist/utils/types.js'
 
 // Import Bot Types
 import type Bot from '../../index.js'
@@ -29,13 +28,11 @@ import type {
 */
 
 // Check if Is Sent Text Object
-function isSentTextObj(is: M.Is, obj: unknown): obj is IMessageTextObj {
+function isSentTextObj(obj: unknown): obj is IMessageTextObj {
   // Check Object Properties
   if (!is.object(obj)) return false
-  else if (!is.in(obj, 'to')) return false
-  else if (!is.object(obj.to)) return false
-  else if (!is.in(obj.to, '_serialized')) return false
-  else if (!is.string(obj.to._serialized)) return false
+  else if (!is.in(obj, 'to', 'object')) return false
+  else if (!is.in(obj.to, '_serialized', 'string')) return false
   else return true
 }
 
@@ -108,7 +105,7 @@ export default class WhatsappClient {
     // If Error Occurred
     } catch (error) {
       // Log Error
-      this.bot.log(`Throw(bot::start) Catch(${error})`)
+      this.bot.log(`Throw(client::start) Catch(${error})`)
     }
     // Check for Client
     if (!this.whatsapp) return false
@@ -159,7 +156,7 @@ export default class WhatsappClient {
     const { to, text } = p
     // send message
     const sent = await this.whatsapp.sendText(to, text)
-    if (!isSentTextObj(is, sent)) throw new Error('message not sent')
+    if (!isSentTextObj(sent)) throw new Error('message not sent')
     // get message by id
     return this.getMessageById(sent.to._serialized)
   }
@@ -172,7 +169,7 @@ export default class WhatsappClient {
     const quoteId = !is.null(replyTarget) ? quote : ''
     // send reply
     const reply = await this.whatsapp.reply(to, text, quoteId)
-    if (!isSentTextObj(is, reply)) throw new Error('message not sent')
+    if (!isSentTextObj(reply)) throw new Error('message not sent')
     // get message by id
     return this.getMessageById(reply.to._serialized)
   }

@@ -17,6 +17,7 @@ import type {
   TExec,
   IMessage
 } from '../types.js'
+import { TSafeAsyncReturn } from 'ts-misc/dist/utils/handle'
 
 /*
 ##########################################################################################################################
@@ -38,7 +39,7 @@ export default class Execute {
 
   // Cycle Reference
   get execute() { return this }
-  get interface() { return this.wapp.client }
+  get client() { return this.wapp.client }
   get wapp() { return this.bot.wapp }
   get misc() { return this.bot.misc }
 
@@ -51,26 +52,26 @@ export default class Execute {
   // Get Message Method
   async onMessage(message: Venom.Message): Promise<unknown> {
     // Prevent execution if bot not started
-    if (!this.interface.started) return
+    if (!this.client.started) return
     else if (!is.object(message)) return
     else if (!is.in(message, 'body')) return
     else if (message.from === 'status@broadcast') return
-    const uSent = this.wapp.setMessage(message)
-    const isGroup = uSent.isGroupMsg === true
-    const ment = uSent.body.includes(`@${this.interface.me.user}`)
-    if (ment) await uSent.quote({ text: this.bot.chat.gotMention, log: 'got_mention' })
-    if (is.object(uSent.quotedMsg)) return await this.onReply(uSent)
-    const data = (ment || !isGroup) ? await this.doAction(uSent) : null
+    const sent = this.wapp.setMessage(message)
+    const isGroup = sent.isGroupMsg === true
+    const ment = sent.body.includes(`@${this.client.me.user}`)
+    if (ment) await sent.quote({ text: this.bot.chat.gotMention, log: 'got_mention' })
+    if (is.object(sent.quotedMsg)) return await this.onReply(sent)
+    const data = (ment || !isGroup) ? await this.do(sent) : null
     return data
   }
 
   // Get Reply Method
-  async onReply(message: IMessage) {
+  async onReply(message: IMessage): TSafeAsyncReturn<unknown> {
     // Check for Quoted-Message Object
     if (!message.quotedMsg) return
     const replyable = message.quotedMsg.id
     if (is.in(this.wapp.replyables, replyable)) {
-      return await this.wapp.replyables[replyable](message)
+      return this.wapp.replyables[replyable](message)
     }
   }
 
@@ -81,7 +82,7 @@ export default class Execute {
   */
 
   // Execute Bot Command
-  async doAction(message: IMessage): Promise<any> {
+  async do(message: IMessage): Promise<unknown> {
     // set initial
     let actionName: string
     try {
@@ -91,7 +92,7 @@ export default class Execute {
           const [cond, condError] = await action.condition(message)
           if (cond && !condError) {
             actionName = action.name
-            this.bot.log(`Exec(bot::${action.name}) From(${message.from})`)
+            this.bot.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
             const [data, actionError] = await action.do(message)
             if (actionError) throw actionError
             else return data
@@ -101,14 +102,14 @@ export default class Execute {
       // do Else
       const action = this.actions.else
       actionName = action.name
-      this.bot.log(`Exec(bot::${action.name}) From(${message.from})`)
+      this.bot.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
       const [data, actionError] = await action.do(message)
       if (actionError) throw actionError
       else return data
     // if error occurred
     } catch (error) {
       // log error
-      await this.bot.log(`Throw(bot::${actionName}) Catch(${error})`)
+      await this.bot.log(`Throw(bot::actions[${actionName}]) Catch(${error})`)
     }
   }
 

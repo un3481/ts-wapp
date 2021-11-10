@@ -78,6 +78,11 @@ export default class Bot<N extends string = string> {
   ##########################################################################################################################
   */
 
+  // Host Device
+  get me() {
+    return this.wapp.client.me
+  }
+
   // Start App
   async start(): Promise<boolean> {
     // Start Wapp Services
