@@ -70,7 +70,7 @@ export default class WhatsappClient {
   */
 
   // Add Action
-  get add(): (typeof Execute.prototype.add) {
+  get add(): typeof Execute.prototype.add {
     return this.execute.add.bind(this.execute)
   }
 
@@ -105,7 +105,10 @@ export default class WhatsappClient {
     // Set On-Message Function
     this.whatsapp.onMessage(msg => this.execute.onMessage(msg))
     // get host data
-    this.me = await this.getHostDevice()
+    this.me = null
+    this.getHostDevice()
+      .then(console.log)
+      .catch(console.log)
     // return done
     return true
   }
@@ -127,7 +130,7 @@ export default class WhatsappClient {
     // Set Get-Message Function
     const getMessage = () => this.whatsapp.getMessageById(id)
     const checkMessage = (obj: unknown) => (
-      is.object(obj) && (!is.in(obj, 'erro') || !(obj.erro))
+      is.object(obj) && (!is.in(obj, 'erro') || !obj.erro)
     )
     const trial = this.misc.handle.repeat(
       getMessage.bind(this) as typeof getMessage,

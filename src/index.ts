@@ -7,7 +7,7 @@
 #                                                    Author: Anthony                                                     #
 #                                 ---------------- Python3 --- NodeJS ----------------                                   #
 #                                                 * Under Development *                                                  #
-#                                      https://github.com/anthony-freitas/ts-wapp                                        #
+#                                       https://github.com/melon-yellow/ts-wapp                                        #
 #                                                 Powered by venom-bot                                                   #
 #                                                                                                                        #
 ##########################################################################################################################
@@ -104,17 +104,17 @@ export default class Bot<N extends string = string> {
   */
 
   // Send Message Method
-  get send(): (typeof Wapp.prototype.send) {
+  get send(): typeof Wapp.prototype.send {
     return this.wapp.send.bind(this.wapp)
   }
 
   // Send Message Safe Method
-  get sends(): (typeof Wapp.prototype.sends) {
+  get sends(): typeof Wapp.prototype.sends {
     return this.wapp.sends.bind(this.wapp)
   }
 
   // Add Action
-  get add(): (typeof Wapp.prototype.add) {
+  get add(): typeof Wapp.prototype.add {
     return this.wapp.add
   }
 }
