@@ -85,10 +85,7 @@ export default class WhatsappClient {
     try { // Create Venom Instance
       const create = this.misc.handle.safe(Venom.create, Venom)
       const [client, clientError] = await create(
-        session,
-        null,
-        null,
-        this.createConfig
+        session
       )
       // Check for Error
       if (clientError) throw clientError
@@ -105,7 +102,6 @@ export default class WhatsappClient {
     // Set On-Message Function
     this.whatsapp.onMessage(msg => this.execute.onMessage(msg))
     // get host data
-    await this.misc.sync.wait(10000)
     this.me = await this.getHostDevice()
     // return done
     return true
