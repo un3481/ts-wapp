@@ -105,10 +105,8 @@ export default class WhatsappClient {
     // Set On-Message Function
     this.whatsapp.onMessage(msg => this.execute.onMessage(msg))
     // get host data
-    this.me = null
-    this.getHostDevice()
-      .then(console.log)
-      .catch(console.log)
+    await this.misc.sync.wait(10000)
+    this.me = await this.getHostDevice()
     // return done
     return true
   }
