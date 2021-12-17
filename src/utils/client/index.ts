@@ -91,6 +91,9 @@ export default class WhatsappClient {
       if (clientError) throw clientError
       // Assign Client Object to Bot
       this.whatsapp = client
+      // Check for Client
+      if (!this.whatsapp) throw new Error('venom client not started')
+      // Set Started
       this.started = true
     // If Error Occurred
     } catch (error) {
