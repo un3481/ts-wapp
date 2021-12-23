@@ -135,8 +135,12 @@ export default class WhatsappClient {
     )
     return new Promise(resolve => {
       trial
-        .catch(error => (n => null)(error) || resolve(null))
-        .then(value => resolve(this.wapp.setMessage(value)))
+        .catch(error => (error && null) || resolve(null))
+        .then(value => resolve(
+          is.object(value)
+            ? this.wapp.setMessage(value as Venom.Message)
+            : null
+        ))
     })
   }
 

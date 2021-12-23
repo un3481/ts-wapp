@@ -83,8 +83,8 @@ export default class Wapp {
   // Add On-Reply Action
   addReplyable(p: { id: string, do: TExec }): boolean {
     const { id } = p
-    if (!is.string(id)) throw new Error('invalid argument "id"')
-    if (!is.function(p.do)) throw new Error('invalid argument "do"')
+    if (!is.string(id)) throw new Error(`(V432) invalid argument "id": ${this.misc.sets.serialize(id)}`)
+    if (!is.function(p.do)) throw new Error(`(U74H) invalid argument "do": ${this.misc.sets.serialize(p.do)}`)
     this.replyables[id] = this.misc.handle.safe(p.do)
     return true
   }
@@ -96,7 +96,7 @@ export default class Wapp {
 
   // Get Message
   async getMessageById(id: string): Promise<IMessage> {
-    if (!is.string(id)) throw new Error('invalid argument "id"')
+    if (!is.string(id)) throw new Error(`(FF42) invalid argument "id": ${this.misc.sets.serialize(id)}`)
     return this.client.getMessageById(id)
   }
 
@@ -107,7 +107,7 @@ export default class Wapp {
 
   // Start Wapp
   async start(session: string): Promise<boolean> {
-    if (!is.null(this.target)) throw new Error('target reference selected: you should not start venom')
+    if (!is.null(this.target)) throw new Error('(452G) target reference selected: you should not start venom')
     return this.client.start(session)
   }
 
@@ -173,7 +173,7 @@ export default class Wapp {
   // Message Constructor
   setMessage(sent: Venom.Message): IMessage {
     // Prevent Empty Message Objects
-    if (!is.object(sent)) throw new Error('invalid argument "sent"')
+    if (!is.object(sent)) throw new Error(`(T78J) invalid argument "sent": ${this.misc.sets.serialize(sent)}`)
     // Fix Author on Private Messages
     if (!sent.isGroupMsg) sent.author = sent.from
     // Allow Cyclic Reference
@@ -227,7 +227,7 @@ export default class Wapp {
           get on() {
             return {
               reply(execute: TExec) {
-                if (!is.function(execute)) throw new Error('invalid argument "execute"')
+                if (!is.function(execute)) throw new Error(`(4RCD) invalid argument "execute": ${this.misc.sets.serialize(sent)}`)
                 wapp.addReplyable({
                   id: sent.id,
                   do: execute
@@ -261,17 +261,17 @@ export default class Wapp {
     quote?: TFetchString
   }): Promise<IMessage> {
     // check if bot has started
-    if (!this.client.started) throw new Error('bot not started')
+    if (!this.client.started) throw new Error('(TH3E) bot not started')
     // fetch text data
     let to = await this.fetch(p.to)
     let text = await this.fetch(p.text)
     let log = await this.fetch(p.log)
     const quote = await this.fetch(p.quote)
     // check params consistency
-    if (!is.string(to)) throw new Error('invalid argument "to"')
-    if (!is.string.or.null(text)) throw new Error('invalid argument "text"')
-    if (!is.string.or.null(log)) throw new Error('invalid argument "log"')
-    if (!is.string.or.null(quote)) throw new Error('invalid argument "quote"')
+    if (!is.string(to)) throw new Error(`(YJ87) invalid argument "to": ${this.misc.sets.serialize(to)}`)
+    if (!is.string.or.null(text)) throw new Error(`(RTHE) invalid argument "text": ${this.misc.sets.serialize(text)}`)
+    if (!is.string.or.null(log)) throw new Error(`(GH5H) invalid argument "log": ${this.misc.sets.serialize(log)}`)
+    if (!is.string.or.null(quote)) throw new Error(`(867G) invalid argument "quote": ${this.misc.sets.serialize(quote)}`)
     // fix parameters
     text = text || ''
     log = log || 'wapp::send'
@@ -294,6 +294,11 @@ export default class Wapp {
     if (sendMessageError) {
       await this.bot.log(`Throw(wapp::send) Catch(${sendMessageError})`)
       throw sendMessageError
+    }
+    if (!is.object(data)) {
+      throw new Error(
+        `(35RT) invalid response from sendMessage: ${this.misc.sets.serialize(data)}`
+      )
     }
     // on success
     await this.bot.log(`Sent(${log}) To(${to})`)
