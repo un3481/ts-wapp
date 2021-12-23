@@ -4205,11 +4205,10 @@ truncate-utf8-bytes@^1.0.0:
     utf8-byte-length "^1.0.1"
 
 ts-misc@melon-yellow/ts-misc:
-  version "1.7.1"
-  resolved "https://codeload.github.com/melon-yellow/ts-misc/tar.gz/b426df698e5b0bcff6f2aebe53975cc204e416b2"
+  version "1.7.3"
+  resolved "https://codeload.github.com/melon-yellow/ts-misc/tar.gz/9d0753a80de07d72acccf7ab438c379e87692946"
   dependencies:
     js-beautify "^1.13.5"
-    prettier "^2.2.1"
     tsconfig-paths "^3.9.0"
     typescript "^4.1.5"
 
