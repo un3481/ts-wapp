@@ -35,11 +35,7 @@ export function isWhatsappTarget(
   obj: unknown
 ): obj is ITarget {
   if (!is.object(obj)) return false
-  if (!is.in(
-    obj,
-    ['address', 'user', 'password'],
-    'string'
-  )) return false
+  if (!is.string.in(obj, ['address', 'user', 'password'])) return false
   return true
 }
 
@@ -198,7 +194,7 @@ export default class Wapp {
           author: wapp.getContactByName(sent.author, -1),
           // Fix Quoted Message Object
           quotedMsg: (
-            is.in(sent, 'quotedMsgObj', 'object')
+            is.object.in(sent, 'quotedMsgObj')
               ? wapp.setMessage(sent.quotedMsgObj)
               : null
           ),

@@ -31,8 +31,8 @@ import type {
 function isSentTextObj(obj: unknown): obj is IMessageTextObj {
   // Check Object Properties
   if (!is.object(obj)) return false
-  else if (!is.in(obj, 'to', 'object')) return false
-  else if (!is.in(obj.to, '_serialized', 'string')) return false
+  else if (!is.object.in(obj, 'to')) return false
+  else if (!is.string.in(obj.to, '_serialized')) return false
   else return true
 }
 

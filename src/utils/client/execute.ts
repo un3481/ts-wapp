@@ -71,7 +71,7 @@ export default class Execute {
       })
     }
     // Check Quoted Message
-    if (is.in(sent, 'quotedMsg', 'object')) {
+    if (is.object.in(sent, 'quotedMsg')) {
       return await this.onReply(sent)
     }
     // Execute Actions
@@ -86,7 +86,7 @@ export default class Execute {
   // Get Reply Method
   async onReply(message: IMessage): TSafeAsyncReturn<unknown> {
     // Check for Quoted-Message Object
-    if (!is.in(message, 'quotedMsg', 'object')) {
+    if (!is.object.in(message, 'quotedMsg')) {
       throw new Error('invalid argument "message"')
     }
     const replyable = message.quotedMsg.id

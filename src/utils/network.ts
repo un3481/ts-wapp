@@ -244,7 +244,7 @@ export default class NetworkWapp {
       action: 'getMessageById',
       do: async req => {
         // check request
-        if (!is.in(req, 'body', 'object')) throw new Error('bad request')
+        if (!is.object.in(req, 'body')) throw new Error('bad request')
         // eslint-disable-next-line camelcase
         const { id } = req.body as { id: unknown }
         // Check Inputs
