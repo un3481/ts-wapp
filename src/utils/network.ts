@@ -174,13 +174,13 @@ export default class NetworkWapp {
       // throw action error
       if (actionError) throw actionError
       // resolve with data
-      return { done: true, data: data }
+      return { ok: true, data: data }
     // if error occurred
     } catch (error) {
       // log error
       await this.bot.log(`Throw(network::actions[${action}]) Catch(${error})`)
       // reject with error
-      return { done: false, error: `${error}` }
+      return { ok: false, error: `${error}` }
     }
   }
 
