@@ -19,7 +19,7 @@
     "express-basic-auth": "^1.2.0",
     "js-beautify": "^1.13.5",
     "request-ip": "^2.1.3",
-    "ts-misc": "melon-yellow/ts-misc",
+    "ts-misc": "un3481/ts-misc",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.1.5",
     "venom-bot": "^4.0.3"
