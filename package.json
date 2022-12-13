@@ -10,7 +10,7 @@
     "transpile": "tsc -p tsconfig.json",
     "beautify": "js-beautify -r --editorconfig ./dist/**/*.{js,ts,tsx}",
     "build": "yarn transpile && yarn beautify",
-    "preinstall": "yarn build"
+    "postinstall": "yarn build"
   },
   "dependencies": {
     "axios": "^0.21.1",
