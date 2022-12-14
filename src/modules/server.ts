@@ -20,6 +20,11 @@ import type { IAPIAction, IAAPIAction, ITarget } from './types'
 
 // ##########################################################################################################################
 
+// Timestamp
+const t = () => new Date().toLocaleString()
+
+// ##########################################################################################################################
+
 // API Class
 export default class Server {
   wapp: Wapp
@@ -69,7 +74,7 @@ export default class Server {
     try {
       // log action to be executed
       const ip = requestIp.getClientIp(req).replace('::ffff:', '')
-      await console.log(`Exec(remote::actions[${action}]) From(${ip})`)
+      await console.log(`[${t()}] Exec(remote::actions[${action}]) From(${ip})`)
       // check request
       if (!is.object(req)) throw new Error('bad request')
       // execute action
@@ -81,7 +86,7 @@ export default class Server {
     // if error occurred
     } catch (error) {
       // log error
-      await console.error(`Throw(remote::actions[${action}]) Catch(${error})`)
+      await console.error(`[${t()}] Throw(remote::actions[${action}]) Catch(${error})`)
       // reject with error
       return { ok: false, error: `${error}` }
     }

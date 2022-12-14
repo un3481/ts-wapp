@@ -14,6 +14,11 @@ import type { IAction, TExec, TAExec, IMessage } from '../types'
 
 // ##########################################################################################################################
 
+// Timestamp
+const t = () => new Date().toLocaleString()
+
+// ##########################################################################################################################
+
 export default class Execute {
   core: WhatsappCore
   actions: Record<string, IAction>
@@ -45,7 +50,7 @@ export default class Execute {
           const [cond, condError] = await action.condition(message)
           if (cond && !condError) {
             actionName = action.name
-            console.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
+            console.log(`[${t()}] Exec(bot::actions[${action.name}]) From(${message.from})`)
             const [data, actionError] = await action.do(message)
             if (actionError) throw actionError
             else return data
@@ -55,14 +60,14 @@ export default class Execute {
       // do Else
       const action = this.actions.else
       actionName = action.name
-      console.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
+      console.log(`[${t()}] Exec(bot::actions[${action.name}]) From(${message.from})`)
       const [data, actionError] = await action.do(message)
       if (actionError) throw actionError
       else return data
     // if error occurred
     } catch (error) {
       // log error
-      await console.error(`Throw(bot::actions[${actionName}]) Catch(${error})`)
+      await console.error(`[${t()}] Throw(bot::actions[${actionName}]) Catch(${error})`)
     }
   }
 

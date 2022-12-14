@@ -16,6 +16,11 @@ import Chat from './chat.js'
 
 // ##########################################################################################################################
 
+// Timestamp
+const t = () => new Date().toLocaleString()
+
+// ##########################################################################################################################
+
 export default class Wapp {
   core: WhatsappCore
   target: ITarget
@@ -224,7 +229,7 @@ export default class Wapp {
     const [data, sendMessageError] = result
     // check for error
     if (sendMessageError) {
-      await console.error(`Throw(wapp::send) Catch(${sendMessageError})`)
+      await console.error(`[${t()}] Throw(wapp::send) Catch(${sendMessageError})`)
       throw sendMessageError
     }
     if (!is.object(data)) {
@@ -233,7 +238,7 @@ export default class Wapp {
       )
     }
     // on success
-    await console.log(`Sent(${log}) To(${to})`)
+    await console.log(`[${t()}] Sent(${log}) To(${to})`)
     const sent = this.setMessage(data)
     // return message
     return sent
