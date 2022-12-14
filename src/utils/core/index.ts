@@ -2,120 +2,80 @@
 // ##########################################################################################################################
 
 // Import Venom
-import Venom from 'venom-bot'
-
-// Import Super-Guard
-import { is, sync, handles } from 'ts-misc'
+import type Venom from 'venom-bot'
 
 // Import Modules
-import Wapp from '../wapp.js'
+import type Wapp from '../wapp'
+import Client from './client.js'
 import Execute from './execute.js'
 
-// Import Types
-import type { IMessage, IMessageTextObj, WappHostDevice } from '../types.js'
-
 // ##########################################################################################################################
 
-// Check if Is Sent Text Object
-const isSentTextObj = (obj: unknown): obj is IMessageTextObj => {
-  // Check Object Properties
-  if (!is.object(obj)) return false
-  else if (!is.object.in(obj, 'to')) return false
-  else if (!is.string.in(obj.to, '_serialized')) return false
-  else return true
-}
-
-// ##########################################################################################################################
-
-export default class Core {
-  client: Venom.Whatsapp
-  createConfig: Venom.CreateConfig
-  execute: Execute
-  me: WappHostDevice
+export default class WhatsappCore {
   wapp: Wapp
+  whatsapp: Venom.Whatsapp
+  client: Client
+  execute: Execute
+
+  get me() { return this.client.me }
 
   // ##########################################################################################################################
 
-  constructor (wapp: Wapp, client: Venom.Whatsapp) {
-    Object.defineProperty(this, 'client',
-      { get() { return client } }
-    )
+  constructor (wapp: Wapp, whatsapp: Venom.Whatsapp) {
     Object.defineProperty(this, 'wapp',
       { get() { return wapp } }
     )
+    Object.defineProperty(this, 'whatsapp',
+      { get() { return whatsapp } }
+    )
     // Add Properties
+    this.client = new Client(this)
     this.execute = new Execute(this)
-    this.me = sync.waitSync(this.getHostDevice())
+    // Default Action
+    this.onMessage({
+      action: 'else',
+      do: msg => null
+    })
   }
 
   // ##########################################################################################################################
 
-  // On-Message Trigger
+  // Get Venom-Bot Host
+  get getHostDevice(): (typeof Client.prototype.getHostDevice) {
+    return this.client.getHostDevice.bind(this.client)
+  }
+
+  // Get Message By Id
+  get getMessageById(): (typeof Client.prototype.getMessageById) {
+    return this.client.getMessageById.bind(this.client)
+  }
+
+  // Send Text Method
+  get sendText(): (typeof Client.prototype.sendText) {
+    return this.client.sendText.bind(this.client)
+  }
+
+  // Send Reply Method
+  get sendReply(): (typeof Client.prototype.sendReply) {
+    return this.client.sendReply.bind(this.client)
+  }
+
+  // ##########################################################################################################################
+
+  // Add On-Message Trigger
   get onMessage(): (typeof Execute.prototype.onMessage) {
     return this.execute.onMessage.bind(this.execute)
   }
 
-  // On-Message Trigger
+  // Add On-Message Trigger
   get onReply(): (typeof Execute.prototype.onReply) {
     return this.execute.onReply.bind(this.execute)
   }
 
-  // Get Venom-Bot Host
-  async getHostDevice(): Promise<WappHostDevice> {
-    const hd = await this.client.getHostDevice()
-    return { ...hd.wid, session: this.client.session }
-  }
-
-  // Get Message By Id
-  async getMessageById(id: string): Promise<IMessage> {
-    // Set Get-Message Function
-    const getMessage = () => this.client.getMessageById(id)
-    const checkMessage = (obj: unknown) => (
-      is.object(obj) && (!is.in(obj, 'erro') || !obj.erro)
-    )
-    const trial = handles.repeat(
-      getMessage.bind(this) as typeof getMessage,
-      checkMessage.bind(this)
-    )
-    return new Promise(resolve => {
-      trial
-        .catch(error => (error && null) || resolve(null))
-        .then(value => resolve(
-          is.object(value)
-            ? this.wapp.setMessage(value as Venom.Message)
-            : null
-        ))
-    })
-  }
-
-  /*
-  ##########################################################################################################################
-  */
-
-  // Send Text Method
-  async sendText(p: { to: string, text: string }): Promise<IMessage> {
-    const { to, text } = p
-    // send message
-    const sent = await this.client.sendText(to, text)
-    if (!isSentTextObj(sent)) throw new Error('message not sent')
-    // get message by id
-    return this.getMessageById(sent.to._serialized)
-  }
-
-  // Send Reply Method
-  async sendReply(p: { to: string, text: string, quote: string }): Promise<IMessage> {
-    const { to, text, quote } = p
-    // check if message exists
-    const replyTarget = await this.getMessageById(quote)
-    const quoteId = !is.null(replyTarget) ? quote : ''
-    // send reply
-    const reply = await this.client.reply(to, text, quoteId)
-    if (!isSentTextObj(reply)) throw new Error('message not sent')
-    // get message by id
-    return this.getMessageById(reply.to._serialized)
+  // Execute On-Message Triggers
+  get runOnMessage(): (typeof Execute.prototype.runOnMessage) {
+    return this.execute.runOnMessage.bind(this.execute)
   }
 }
 
-/*
-##########################################################################################################################
-*/
+// ##########################################################################################################################

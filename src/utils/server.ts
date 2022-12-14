@@ -6,16 +6,17 @@ import express, { Express, Request, RequestHandler } from 'express'
 import basicAuth from 'express-basic-auth'
 import requestIp from 'request-ip'
 
-// Import General Modules
+// Import Axios
 import axios from 'axios'
 import type { AxiosResponse } from 'axios'
 
-// Import Super-Guard
-import { is, sets, handles, logs } from 'ts-misc'
+// Import Misc Modules
+import { is, sets, handles } from 'ts-misc'
 
 // Import Modules
-import Wapp from './wapp.js'
-import type { IAPIAction, IAAPIAction, ITarget } from './types.js'
+import { isTarget } from './types.js'
+import type Wapp from './wapp'
+import type { IAPIAction, IAAPIAction, ITarget } from './types'
 
 // ##########################################################################################################################
 
@@ -68,7 +69,7 @@ export default class Server {
     try {
       // log action to be executed
       const ip = requestIp.getClientIp(req).replace('::ffff:', '')
-      await logs.log(`Exec(remote::actions[${action}]) From(${ip})`)
+      await console.log(`Exec(remote::actions[${action}]) From(${ip})`)
       // check request
       if (!is.object(req)) throw new Error('bad request')
       // execute action
@@ -80,7 +81,7 @@ export default class Server {
     // if error occurred
     } catch (error) {
       // log error
-      await logs.log(`Throw(remote::actions[${action}]) Catch(${error})`)
+      await console.error(`Throw(remote::actions[${action}]) Catch(${error})`)
       // reject with error
       return { ok: false, error: `${error}` }
     }
@@ -150,7 +151,7 @@ export default class Server {
           quote: quote
         }
         // get referer
-        const ref = this.wapp.isTarget(referer) ? referer : null
+        const ref = isTarget(referer) ? referer : null
         // send message
         const [sent, sendMessageError] = await this.wapp.sends(p)
         // if not done prevent execution

@@ -5,14 +5,15 @@
 import type Venom from 'venom-bot'
 import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
 
-// Import Wapp Class
-import type Wapp from './wapp.js'
-
 // Import Express-Core Type
 import type * as expressCore from 'express-serve-static-core'
 
-// Import Types
+// Import Misc Types
+import { is } from 'ts-misc'
 import type * as M from 'ts-misc/dist/utils/handle'
+
+// Import Wapp Type
+import type Wapp from './wapp'
 
 // ##########################################################################################################################
 
@@ -31,8 +32,12 @@ export interface IAction {
   readonly do: TAExec
 }
 
+// ##########################################################################################################################
+
 // Message Text Type
 export type TFetchString = string | Promise<string> | (() => string | Promise<string>)
+
+// ##########################################################################################################################
 
 // Sent Message Interface
 export interface IMessage extends Venom.Message {
@@ -51,12 +56,23 @@ export interface IMessageTextObj {
   to: { _serialized: string }
 }
 
+// ##########################################################################################################################
+
 // Target Interface
 export interface ITarget {
   readonly address: string
   readonly user: string
   readonly password: string
 }
+
+// Check Target Object
+export const isTarget = (obj: unknown): obj is ITarget => {
+  if (!is.object(obj)) return false
+  if (!is.string.in(obj, ['address', 'user', 'password'])) return false
+  return true
+}
+
+// ##########################################################################################################################
 
 export interface WappHostDevice extends VenomHostDevice.Me {
   session: string

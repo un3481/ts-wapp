@@ -4,19 +4,20 @@
 import Venom from 'venom-bot'
 
 // Import Super-Guard
-import { is, sets, handles, logs } from 'ts-misc'
+import { is, sets, handles } from 'ts-misc'
+
+// Import Modules Types
+import { isTarget } from './types.js'
+import type { TExec, TFetchString, IMessage, ITarget } from './types'
 
 // Import Modules
-import Core from './core/index.js'
+import WhatsappCore from './core/index.js'
 import Chat from './chat.js'
-
-// Import Bot Types
-import type { TExec, TFetchString, IMessage, ITarget } from './types.js'
 
 // ##########################################################################################################################
 
 export default class Wapp {
-  core: Core
+  core: WhatsappCore
   target: ITarget
   chat: Chat
   contacts: Record<string, string>
@@ -31,49 +32,30 @@ export default class Wapp {
   constructor (source: Venom.Whatsapp | ITarget) {
     // Verify Input
     if (source instanceof Venom.Whatsapp) {
-      this.core = new Core(this, source)
-    } else if (this.isTarget(source)) {
+      this.core = new WhatsappCore(this, source)
+    } else if (isTarget(source)) {
       this.target = source
     }
     // Set Properties
     this.chat = new Chat(this)
     this.contacts = {}
-    // Default Method
-    this.onMessage({
-      action: 'else',
-      do: msg => null
-    })
-  }
-
-  // ##########################################################################################################################
-
-  // Check Target Object
-  isTarget(obj: unknown): obj is ITarget {
-    if (!is.object(obj)) return false
-    if (!is.string.in(obj, ['address', 'user', 'password'])) return false
-    return true
   }
 
   // ##########################################################################################################################
 
   // Add On-Message Action
-  get onMessage(): (typeof Core.prototype.onMessage) {
-    return this.core.onMessage.bind(this.core)
-  }
-
-  // Add On-Reply Action
-  get onReply(): (typeof Core.prototype.onReply) {
-    return this.core.onReply.bind(this.core)
+  get onMessage(): (typeof WhatsappCore.prototype.onMessage) {
+    return this.core.onMessage
   }
 
   // Get Venom-Bot Host
-  get getHostDevice(): (typeof Core.prototype.getHostDevice) {
-    return this.core.getHostDevice.bind(this.core)
+  get getHostDevice(): (typeof WhatsappCore.prototype.getHostDevice) {
+    return this.core.getHostDevice
   }
 
   // Get Message
-  get getMessageById(): (typeof Core.prototype.getMessageById) {
-    return this.core.getMessageById.bind(this.core)
+  get getMessageById(): (typeof WhatsappCore.prototype.getMessageById) {
+    return this.core.getMessageById
   }
 
   // ##########################################################################################################################
@@ -182,7 +164,7 @@ export default class Wapp {
             return {
               reply(execute: TExec) {
                 if (!is.function(execute)) throw new Error(`(4RCD) invalid argument "execute": ${this.misc.sets.serialize(sent)}`)
-                wapp.onReply({
+                wapp.core.onReply({
                   id: sent.id,
                   do: execute
                 })
@@ -242,7 +224,7 @@ export default class Wapp {
     const [data, sendMessageError] = result
     // check for error
     if (sendMessageError) {
-      await logs.log(`Throw(wapp::send) Catch(${sendMessageError})`)
+      await console.error(`Throw(wapp::send) Catch(${sendMessageError})`)
       throw sendMessageError
     }
     if (!is.object(data)) {
@@ -251,7 +233,7 @@ export default class Wapp {
       )
     }
     // on success
-    await logs.log(`Sent(${log}) To(${to})`)
+    await console.log(`Sent(${log}) To(${to})`)
     const sent = this.setMessage(data)
     // return message
     return sent

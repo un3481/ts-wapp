@@ -1,18 +1,13 @@
 
 // ##########################################################################################################################
 
-// Imports
-import type Wapp from './wapp.js'
-import type { IMessage } from './types.js'
-
 // Import Misc Modules
-import { sets, strings } from 'ts-misc'
-
-// Import Misc Types
+import { is, sets, strings } from 'ts-misc'
 import type * as M from 'ts-misc/dist/utils/types'
 
-// Import Super-Guard
-import { is } from 'ts-misc/dist/utils/guards.js'
+// Import Modules
+import type Wapp from './wapp'
+import type { IMessage } from './types'
 
 // ##########################################################################################################################
 

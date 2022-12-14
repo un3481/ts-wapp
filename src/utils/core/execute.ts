@@ -2,20 +2,20 @@
 // ##########################################################################################################################
 
 // Import Venom
-import Venom from 'venom-bot'
+import type Venom from 'venom-bot'
 
 // Import Misc
-import { is, sets, handles, logs } from 'ts-misc'
-import { TSafeAsyncReturn } from 'ts-misc/dist/utils/handle'
+import { is, sets, handles } from 'ts-misc'
+import type { TSafeAsyncReturn } from 'ts-misc/dist/utils/handle'
 
 // Import Bot Types
-import type Core from './index.js'
-import type { IAction, TExec, TAExec, IMessage } from '../types.js'
+import type WhatsappCore from './index'
+import type { IAction, TExec, TAExec, IMessage } from '../types'
 
 // ##########################################################################################################################
 
 export default class Execute {
-  core: Core
+  core: WhatsappCore
   actions: Record<string, IAction>
   repliables: Record<string, TAExec>
 
@@ -23,7 +23,7 @@ export default class Execute {
 
   // ##########################################################################################################################
 
-  constructor (core: Core) {
+  constructor (core: WhatsappCore) {
     Object.defineProperty(this, 'core',
       { get() { return core } }
     )
@@ -34,7 +34,41 @@ export default class Execute {
 
   // ##########################################################################################################################
 
-  // Run On-Message Method
+  // Execute Actions
+  async execute(message: IMessage): Promise<unknown> {
+    // set initial
+    let actionName: string
+    try {
+      // Check All Action Conditions
+      for (const action of Object.values(this.actions)) {
+        if (action.condition && action.name !== 'else') {
+          const [cond, condError] = await action.condition(message)
+          if (cond && !condError) {
+            actionName = action.name
+            console.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
+            const [data, actionError] = await action.do(message)
+            if (actionError) throw actionError
+            else return data
+          }
+        }
+      }
+      // do Else
+      const action = this.actions.else
+      actionName = action.name
+      console.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
+      const [data, actionError] = await action.do(message)
+      if (actionError) throw actionError
+      else return data
+    // if error occurred
+    } catch (error) {
+      // log error
+      await console.error(`Throw(bot::actions[${actionName}]) Catch(${error})`)
+    }
+  }
+
+  // ##########################################################################################################################
+
+  // Run On-Message Triggers
   async runOnMessage(message: Venom.Message): Promise<unknown> {
     // Prevent execution if bot not available
     if (!this.core.client) return
@@ -62,13 +96,15 @@ export default class Execute {
     // Execute Actions
     let data = null
     if (ment || !isGroup) {
-      data = await this.doActions(sent)
+      data = await this.execute(sent)
     }
     // Return Data
     return data
   }
 
-  // Run On-Reply Method
+  // ##########################################################################################################################
+
+  // Run On-Reply Triggers
   async runOnReply(message: IMessage): TSafeAsyncReturn<unknown> {
     // Check for Quoted-Message Object
     if (!is.object.in(message, 'quotedMsg')) {
@@ -82,41 +118,7 @@ export default class Execute {
 
   // ##########################################################################################################################
 
-  // Execute Bot Command
-  async doActions(message: IMessage): Promise<unknown> {
-    // set initial
-    let actionName: string
-    try {
-      // Check All Action Conditions
-      for (const action of Object.values(this.actions)) {
-        if (action.condition && action.name !== 'else') {
-          const [cond, condError] = await action.condition(message)
-          if (cond && !condError) {
-            actionName = action.name
-            logs.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
-            const [data, actionError] = await action.do(message)
-            if (actionError) throw actionError
-            else return data
-          }
-        }
-      }
-      // do Else
-      const action = this.actions.else
-      actionName = action.name
-      logs.log(`Exec(bot::actions[${action.name}]) From(${message.from})`)
-      const [data, actionError] = await action.do(message)
-      if (actionError) throw actionError
-      else return data
-    // if error occurred
-    } catch (error) {
-      // log error
-      await logs.log(`Throw(bot::actions[${actionName}]) Catch(${error})`)
-    }
-  }
-
-  // ##########################################################################################################################
-
-  // Add Bot Action
+  // Add On-Message Trigger
   onMessage(p: {
     action: string,
     condition?: TExec
@@ -148,7 +150,7 @@ export default class Execute {
 
   // ##########################################################################################################################
 
-  // Add On-Reply Action
+  // Add On-Reply Trigger
   onReply(p: { id: string, do: TExec }): boolean {
     const { id } = p
     if (!is.string(id)) throw new Error(`(V432) invalid argument "id": ${sets.serialize(id)}`)
