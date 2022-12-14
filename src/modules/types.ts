@@ -10,7 +10,7 @@ import type * as expressCore from 'express-serve-static-core'
 
 // Import Misc Types
 import { is } from 'ts-misc'
-import type * as M from 'ts-misc/dist/modules/handle'
+import type * as M from 'ts-misc/dist/modules/handles'
 
 // Import Wapp Type
 import type Wapp from './wapp'
