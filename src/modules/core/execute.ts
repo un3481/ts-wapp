@@ -6,7 +6,7 @@ import type Venom from 'venom-bot'
 
 // Import Misc
 import { is, sets, handles } from 'ts-misc'
-import type { TSafeAsyncReturn } from 'ts-misc/dist/utils/handle'
+import type { TSafeAsyncReturn } from 'ts-misc/dist/modules/handle'
 
 // Import Bot Types
 import type WhatsappCore from './index'

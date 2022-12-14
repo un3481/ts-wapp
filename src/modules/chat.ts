@@ -3,7 +3,7 @@
 
 // Import Misc Modules
 import { is, sets, strings } from 'ts-misc'
-import type * as M from 'ts-misc/dist/utils/types'
+import type * as M from 'ts-misc/dist/modules/types'
 
 // Import Modules
 import type Wapp from './wapp'
