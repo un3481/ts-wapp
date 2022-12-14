@@ -4192,8 +4192,8 @@ truncate-utf8-bytes@^1.0.0:
     utf8-byte-length "^1.0.1"
 
 ts-misc@un3481/ts-misc:
-  version "1.7.7"
-  resolved "https://codeload.github.com/un3481/ts-misc/tar.gz/5b20674c806f569e0003d5d87aac858d7bd979a3"
+  version "1.8.1"
+  resolved "https://codeload.github.com/un3481/ts-misc/tar.gz/1df2c35864a5113464ea2fd3debee174613a1199"
   dependencies:
     js-beautify "^1.13.5"
     tsconfig-paths "^3.9.0"
