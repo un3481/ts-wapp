@@ -14,7 +14,7 @@ import type { AxiosResponse } from 'axios'
 import { is, sets, handles } from 'ts-misc'
 
 // Import Modules
-import { isTarget } from './types.js'
+import { isTarget } from './types'
 import type Wapp from './wapp'
 import type { IAPIAction, IAAPIAction, ITarget } from './types'
 

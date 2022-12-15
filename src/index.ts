@@ -14,8 +14,8 @@
 */
 
 // Imports
-import Whatsapp from './modules/wapp.js'
-import WhatsappServer from './modules/server.js'
+import Whatsapp from './modules/wapp'
+import WhatsappServer from './modules/server'
 
 // Exports
 export const Wapp = Whatsapp

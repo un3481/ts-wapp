@@ -8,7 +8,7 @@ import type Venom from 'venom-bot'
 import { is, sync, handles } from 'ts-misc'
 
 // Import Modules
-import type WhatsappCore from './index'
+import type WhatsappCore from './'
 
 // Import Types
 import type { IMessage, IMessageTextObj, WappHostDevice } from '../types'

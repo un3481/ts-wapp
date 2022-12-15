@@ -6,8 +6,8 @@ import type Venom from 'venom-bot'
 
 // Import Modules
 import type Wapp from '../wapp'
-import Client from './client.js'
-import Execute from './execute.js'
+import Client from './client'
+import Execute from './execute'
 
 // ##########################################################################################################################
 

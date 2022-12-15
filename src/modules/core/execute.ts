@@ -9,7 +9,7 @@ import { is, sets, handles } from 'ts-misc'
 import type { TSafeAsyncReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Bot Types
-import type WhatsappCore from './index'
+import type WhatsappCore from './'
 import type { IAction, TExec, TAExec, IMessage } from '../types'
 
 // ##########################################################################################################################

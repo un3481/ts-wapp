@@ -7,12 +7,12 @@ import Venom from 'venom-bot'
 import { is, sets, handles } from 'ts-misc'
 
 // Import Modules Types
-import { isTarget } from './types.js'
+import { isTarget } from './types'
 import type { TExec, TFetchString, IMessage, ITarget } from './types'
 
 // Import Modules
-import WhatsappCore from './core/index.js'
-import Chat from './chat.js'
+import WhatsappCore from './core'
+import Chat from './chat'
 
 // ##########################################################################################################################
 
