@@ -12,6 +12,7 @@ import type { AxiosResponse } from 'axios'
 
 // Import Misc Modules
 import { is, sets, handles } from 'ts-misc'
+import { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Modules
 import { isTarget } from './types'
@@ -61,9 +62,10 @@ export default class Server {
   // ##########################################################################################################################
 
   // Safe Request
-  async reqs(p: { target: ITarget, data: any }) {
-    const req = handles.safe(this.req, this)
-    return req(p)
+  async sreq(p: { target: ITarget, data: any }): Promise<SafeReturn<AxiosResponse<any>>> {
+    return await handles.safe(
+      this.req.bind(this) as (typeof Server.prototype.req)
+    ).async(p)
   }
 
   // ##########################################################################################################################
@@ -102,7 +104,7 @@ export default class Server {
     if (!is.string(action)) throw new Error('invalid argument "action"')
     if (action.length === 0) throw new Error('invalid argument "action"')
     // Set Safe Action
-    const dosafe = handles.safe(p.do)
+    const dosafe = handles.safe(p.do).async
     // Set Bot Interface
     app.post(
       `/${base}/${action}/`,
@@ -158,9 +160,9 @@ export default class Server {
         // get referer
         const ref = isTarget(referer) ? referer : null
         // send message
-        const [sent, sendMessageError] = await this.wapp.sends(p)
+        const [ok, sent] = await this.wapp.ssend(p)
         // if not done prevent execution
-        if (sendMessageError) throw sendMessageError
+        if (!ok || is.error(sent)) throw sent
         // set default reply action
         sent.on.reply(async message => {
           const args = {
@@ -172,8 +174,8 @@ export default class Server {
             }
           }
           // send on-reply trigger
-          const [data, onReplyError] = await this.reqs(args)
-          if (onReplyError) throw onReplyError
+          const [ok, data] = await this.sreq(args)
+          if (!ok) throw data
           return data
         })
         // return message

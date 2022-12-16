@@ -5,7 +5,7 @@
 import type Venom from 'venom-bot'
 
 // Import Super-Guard
-import { is, sync, handles } from 'ts-misc'
+import { is, handles } from 'ts-misc'
 
 // Import Modules
 import type WhatsappCore from './'
@@ -17,7 +17,6 @@ import type { IMessage, IMessageTextObj, WappHostDevice } from '../types'
 
 export default class Client {
   core: WhatsappCore
-  me: WappHostDevice
   createConfig: Venom.CreateConfig
 
   get wapp() { return this.core.wapp }
@@ -30,7 +29,6 @@ export default class Client {
       { get() { return core } }
     )
     // Set Properties
-    this.me = sync.waitSync(this.getHostDevice())
     this.createConfig = this.whatsapp.options
   }
 
@@ -59,8 +57,8 @@ export default class Client {
       trial
         .catch(error => (error && null) || resolve(null))
         .then(value => resolve(
-          is.object(value)
-            ? this.wapp.setMessage(value as Venom.Message)
+          value
+            ? this.wapp.setMessage(value)
             : null
         ))
     })

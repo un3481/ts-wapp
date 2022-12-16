@@ -19,11 +19,11 @@ import type Wapp from './wapp'
 
 // Exec Function Type
 export type TExec = (m: IMessage) => unknown
-export type TAExec = (m: IMessage) => M.TSafeAsyncReturn<unknown>
+export type TAExec = (m: IMessage) => Promise<M.SafeReturn<unknown>>
 
 // Interface Action Interface
 export type IAPIAction = (req: expressCore.Request) => unknown
-export type IAAPIAction = (req: expressCore.Request) => M.TSafeAsyncReturn<unknown>
+export type IAAPIAction = (req: expressCore.Request) => Promise<M.SafeReturn<unknown>>
 
 // Action Interface
 export interface IAction {

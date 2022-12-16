@@ -4307,8 +4307,8 @@ truncate-utf8-bytes@^1.0.0:
     utf8-byte-length "^1.0.1"
 
 ts-misc@un3481/ts-misc:
-  version "1.8.4"
-  resolved "https://codeload.github.com/un3481/ts-misc/tar.gz/ea5861db3f51d971eb59265ffca435fbd9323f12"
+  version "1.9.2"
+  resolved "https://codeload.github.com/un3481/ts-misc/tar.gz/936314ab9a691653c76ca8a4f8569bdc77fbbc40"
   dependencies:
     tsconfig-paths "^3.9.0"
     typescript "^4.1.5"

@@ -22,12 +22,12 @@ export default class Chat {
   }
 
   // Clean Message
-  clean(message: string | IMessage, lower = true): string {
+  async clean(message: string | IMessage, lower = true): Promise<string> {
     let str: string = ''
     if (is.string(message)) str = message
     else str = message.body
     str = lower ? str.toLowerCase() : str
-    str = str.replace(`@${this.wapp.me.user}`, '')
+    str = str.replace(`@${(await this.wapp.getHostDevice()).user}`, '')
     while (str.includes('  ')) str = str.replace('  ', ' ')
     str = str.trim()
     str = str.normalize('NFD')

@@ -5,6 +5,7 @@ import Venom from 'venom-bot'
 
 // Import Super-Guard
 import { is, sets, handles } from 'ts-misc'
+import { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Modules Types
 import { isTarget } from './types'
@@ -26,11 +27,6 @@ export default class Wapp {
   target: ITarget
   chat: Chat
   contacts: Record<string, string>
-
-  // Host Device
-  get me() {
-    return this.core.me
-  }
 
   // ##########################################################################################################################
 
@@ -178,8 +174,8 @@ export default class Wapp {
             }
           },
           // Clean Message Text
-          clean(): string {
-            return wapp.chat.clean(this.body)
+          async clean(): Promise<string> {
+            return await wapp.chat.clean(this.body)
           }
         })
       }
@@ -216,21 +212,15 @@ export default class Wapp {
     to = this.getContactByName(to)
     // send message
     const result = (quote
-      ? await handles.safe(
-        this.core.sendReply,
-        this.core
-      )({ to: to, text: text, quote: quote })
-      : await handles.safe(
-        this.core.sendText,
-        this.core
-      )({ to: to, text: text })
+      ? await handles.safe(this.core.sendReply).async({ to: to, text: text, quote: quote })
+      : await handles.safe(this.core.sendText).async({ to: to, text: text })
     )
     // set message object
-    const [data, sendMessageError] = result
+    const [ok, data] = result
     // check for error
-    if (sendMessageError) {
-      await console.error(`[${t()}] Throw(wapp::send) Catch(${sendMessageError})`)
-      throw sendMessageError
+    if (!ok || is.error(data)) {
+      console.error(`[${t()}] Throw(wapp::send) Catch(${data})`)
+      throw data
     }
     if (!is.object(data)) {
       throw new Error(
@@ -247,14 +237,15 @@ export default class Wapp {
   // ##########################################################################################################################
 
   // Safe Send Message Method
-  async sends(p: {
+  async ssend(p: {
     to: TFetchString,
     text?: TFetchString,
     log?: TFetchString,
     quote?: TFetchString
-  }) {
-    const send = handles.safe(this.send, this)
-    return send(p)
+  }): Promise<SafeReturn<IMessage>> {
+    return await handles.safe(
+      this.send.bind(this) as typeof Wapp.prototype.send
+    ).async(p)
   }
 }
 

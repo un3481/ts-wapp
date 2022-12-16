@@ -6,7 +6,7 @@ import type Venom from 'venom-bot'
 
 // Import Misc
 import { is, sets, handles } from 'ts-misc'
-import type { TSafeAsyncReturn } from 'ts-misc/dist/modules/handles'
+import { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Bot Types
 import type WhatsappCore from './'
@@ -87,7 +87,7 @@ export default class Execute {
     // Check for Group Message
     const isGroup = sent.isGroupMsg === true
     // Check Mentioned
-    const ment = sent.body.includes(`@${this.core.me.user}`)
+    const ment = sent.body.includes(`@${(await this.core.getHostDevice()).user}`)
     if (ment) {
       await sent.quote({
         text: this.wapp.chat.gotMention,
@@ -110,7 +110,7 @@ export default class Execute {
   // ##########################################################################################################################
 
   // Run On-Reply Triggers
-  async runOnReply(message: IMessage): TSafeAsyncReturn<unknown> {
+  async runOnReply(message: IMessage): Promise<SafeReturn<unknown>> {
     // Check for Quoted-Message Object
     if (!is.object.in(message, 'quotedMsg')) {
       throw new Error('invalid argument "message"')
@@ -140,13 +140,13 @@ export default class Execute {
     let push: IAction
     push = {
       name: action,
-      condition: handles.safe(condition),
-      do: handles.safe(p.do)
+      condition: handles.safe(condition).async,
+      do: handles.safe(p.do).async
     }
     if (action === 'else') {
       push = {
         name: action,
-        do: handles.safe(p.do)
+        do: handles.safe(p.do).async
       }
     }
     this.actions[action] = push
@@ -160,7 +160,7 @@ export default class Execute {
     const { id } = p
     if (!is.string(id)) throw new Error(`(V432) invalid argument "id": ${sets.serialize(id)}`)
     if (!is.function(p.do)) throw new Error(`(U74H) invalid argument "do": ${sets.serialize(p.do)}`)
-    this.repliables[id] = handles.safe(p.do)
+    this.repliables[id] = handles.safe(p.do).async
     return true
   }
 }

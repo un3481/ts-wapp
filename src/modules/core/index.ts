@@ -17,8 +17,6 @@ export default class WhatsappCore {
   client: Client
   execute: Execute
 
-  get me() { return this.client.me }
-
   // ##########################################################################################################################
 
   constructor (wapp: Wapp, whatsapp: Venom.Whatsapp) {
