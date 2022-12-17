@@ -3,7 +3,7 @@
 
 // Import Misc Modules
 import { is, sets, strings } from 'ts-misc'
-import type * as M from 'ts-misc/dist/modules/types'
+import type { ValueOf } from 'ts-misc/dist/modules/types'
 
 // Import Modules
 import type Wapp from './wapp'
@@ -22,7 +22,7 @@ export default class Chat {
   }
 
   // Clean Message
-  async clean(message: string | IMessage, lower = true): Promise<string> {
+  clean(message: string | IMessage, lower = true): string {
     let str: string = ''
     if (is.string(message)) str = message
     else str = message.body
@@ -47,7 +47,7 @@ export default class Chat {
     } as const
     for (const i in g) {
       if (h < Number(i)) {
-        return g[i] as M.ValueOf<typeof g>
+        return g[i] as ValueOf<typeof g>
       }
     }
   }

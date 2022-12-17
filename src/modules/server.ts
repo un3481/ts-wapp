@@ -12,7 +12,7 @@ import type { AxiosResponse } from 'axios'
 
 // Import Misc Modules
 import { is, sets, handles } from 'ts-misc'
-import { SafeReturn } from 'ts-misc/dist/modules/handles'
+import type { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Modules
 import { isTarget } from './types'
@@ -44,25 +44,8 @@ export default class Server {
 
   // ##########################################################################################################################
 
-  // Request
-  async req(p: { target: ITarget, data: unknown }): Promise<SafeReturn<AxiosResponse<any>>> {
-    const { target, data } = p
-    return handles.safe(axios.post).async(
-      target.address,
-      sets.serialize(data),
-      {
-        auth: {
-          username: target.user,
-          password: target.password
-        }
-      }
-    )
-  }
-
-  // ##########################################################################################################################
-
-  // Interface Execute Bot Command
-  async execute(p: { action: string, do: IAAPIAction, req: Request }) {
+  // Run On-POST Trigger
+  async runOnPOST(p: { action: string, do: IAAPIAction, req: Request }) {
     const { action, req } = p
     try {
       // log action to be executed
@@ -88,22 +71,23 @@ export default class Server {
   // ##########################################################################################################################
 
   // Add Bot Interface Action
-  add(p: { app: Express, base: string, action: string, do: IAPIAction }): boolean {
+  post(p: { app: Express, base: string, action: string, do: IAPIAction }): boolean {
     const { app, base, action } = p
     // Check Inputs
-    if (!is.function(p.do)) throw new Error('invalid argument "do"')
     if (!is.string(action)) throw new Error('invalid argument "action"')
     if (action.length === 0) throw new Error('invalid argument "action"')
+    if (!is.function(p.do)) throw new Error('invalid argument "do"')
     // Set Safe Action
     const dosafe = handles.safe(p.do).async
     // Set Bot Interface
+    const server = this
     app.post(
       `/${base}/${action}/`,
-      basicAuth({ users: this.users }),
+      basicAuth({ get users() { return server.users } }),
       express.json() as RequestHandler,
       async (req, res) => {
         // Execute Functionality
-        const response = await this.execute({
+        const response = await this.runOnPOST({
           action: action,
           do: dosafe,
           req: req
@@ -120,19 +104,36 @@ export default class Server {
 
   // ##########################################################################################################################
 
+  // Request
+  async req(p: { target: ITarget, data: unknown }): Promise<SafeReturn<AxiosResponse<any>>> {
+    const { target, data } = p
+    return handles.safe(axios.post).async(
+      target.address,
+      sets.serialize(data),
+      {
+        auth: {
+          username: target.user,
+          password: target.password
+        }
+      }
+    )
+  }
+
+  // ##########################################################################################################################
+
   // Setup RESTfull API
   route(p: { app: Express, base: string }): boolean {
     const { app, base } = p
 
     // Add send-message Action
-    this.add({
+    this.post({
       app: app,
       base: base,
       action: 'send',
       do: async req => {
-        // check request
+        // Check request
         if (!is.object(req.body)) throw new Error('bad request')
-        // eslint-disable-next-line camelcase
+        // Extract arguments
         const { to, content, log, options, referer } = req.body as {
           to: unknown,
           content: unknown,
@@ -140,39 +141,40 @@ export default class Server {
           options?: unknown,
           referer?: unknown
         }
-        // check arguments
+        // Check arguments
         if (!is.string(to)) throw new Error('invalid argument "to"')
         if (!is.string(content)) throw new Error('invalid argument "content"')
         if (!is.string.or.null(log)) throw new Error('invalid argument "log"')
         if (!is.object.or.null(options)) throw new Error('invalid argument "quote"')
-        // fix parameters
+        // Fix parameters
         const p = {
           to: to,
           content: content,
           log: log || 'remote::send',
-          options: options
+          options: options || {}
         }
-        // get referer
-        const ref = isTarget(referer) ? referer : null
-        // send message
+        // Send message
         const [ok, sent] = await this.wapp.send(p)
-        // if not done prevent execution
         if (!ok || is.error(sent)) throw sent
-        // set default reply action
-        sent.on.reply(async message => {
-          const args = {
-            target: ref,
-            action: 'on_reply',
-            data: {
-              id: sent.id,
-              reply: message
+        // Get referer
+        const ref = isTarget(referer) ? referer : null
+        // Add On-Reply action
+        if (ref) {
+          sent.on.reply(async message => {
+            const args = {
+              target: ref,
+              action: 'on_reply',
+              data: {
+                id: sent.id,
+                reply: message
+              }
             }
-          }
-          // send on-reply trigger
-          const [ok, data] = await this.req(args)
-          if (!ok) throw data
-          return data
-        })
+            // POST On-Reply back to referer
+            const [ok, data] = await this.req(args)
+            if (!ok || is.error(data)) throw data
+            return data
+          })
+        }
         // return message
         return sent
       }
@@ -181,11 +183,11 @@ export default class Server {
     // ##########################################################################################################################
 
     // Add host-device Action
-    this.add({
+    this.post({
       app: app,
       base: base,
       action: 'get_host_device',
-      do: req => {
+      do: async req => {
         return this.wapp.client.info.wid
       }
     })

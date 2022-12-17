@@ -8,8 +8,8 @@ import { is, sets, handles } from 'ts-misc'
 import { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Modules Types
-import { isTarget } from './types'
-import type { TExec, IMessage, ITarget } from './types'
+import { isTarget, IMessageProxyHandler } from './types'
+import type { IMessage, ITarget } from './types'
 
 // Import Modules
 import Core from './core'
@@ -55,6 +55,24 @@ export default class Wapp {
 
   // ##########################################################################################################################
 
+  // Message Constructor
+  setMessage(sent: Message): IMessage {
+    // Prevent Empty Message Objects
+    if (!is.object(sent)) throw new Error('invalid argument "sent"')
+    // Allow Cyclic Reference
+    const wapp = this
+    Object.defineProperty(sent, 'wapp',
+      { get() { return wapp } }
+    )
+    // Return IMessage Proxy
+    return new Proxy(
+      sent as unknown as IMessage,
+      IMessageProxyHandler
+    )
+  }
+
+  // ##########################################################################################################################
+
   // Get Contact Number by Name
   getContactByName(to: string, flag?: number): string {
     let contact = `${to}`
@@ -81,70 +99,6 @@ export default class Wapp {
 
   // ##########################################################################################################################
 
-  // Message Constructor
-  setMessage(sent: Message): IMessage {
-    // Prevent Empty Message Objects
-    if (!is.object(sent)) throw new Error(`(T78J) invalid argument "sent": ${sets.serialize(sent)}`)
-    // Allow Cyclic Reference
-    const wapp = this
-    // Assign Message Properties
-    const message = Object.defineProperties(
-      {} as IMessage,
-      {
-        ...Object.getOwnPropertyDescriptors(sent),
-        ...Object.getOwnPropertyDescriptors({
-          // Wapp
-          get wapp () { return wapp },
-          // Fix Contact Names
-          from: wapp.getContactByName(sent.from, -1),
-          author: wapp.getContactByName(sent.author, -1),
-          // Fix Quoted Message Object
-          getQuotedMessage: async () => {
-            if (is.true.in(sent, 'hasQuotedMsg')) {
-              const message = await sent.getQuotedMessage()
-              return wapp.setMessage(message)
-            }
-            return null
-          },
-          // Send Message to Chat
-          async send(p: {
-            content: string,
-            log?: string,
-            options?: MessageSendOptions
-          }): Promise<SafeReturn<IMessage>> {
-            return (this.wapp as Wapp).send({
-              to: this.from,
-              content: p.content,
-              log: p.log,
-              options: p.options
-            })
-          },
-          // Set On-Reply Action
-          get on() {
-            return {
-              reply(execute: TExec) {
-                if (!is.function(execute)) throw new Error(`(4RCD) invalid argument "execute": ${this.misc.sets.serialize(sent)}`)
-                wapp.core.onReply({
-                  id: sent.id._serialized,
-                  do: execute
-                })
-                return true
-              }
-            }
-          },
-          // Clean Message Text
-          async clean(): Promise<string> {
-            return await wapp.chat.clean(this.body)
-          }
-        })
-      }
-    )
-    // return Message Object
-    return message
-  }
-
-  // ##########################################################################################################################
-
   // Send Message Method
   async send(p: {
     to: string,
@@ -152,33 +106,35 @@ export default class Wapp {
     log?: string,
     options?: MessageSendOptions
   }): Promise<SafeReturn<IMessage>> {
-    // check if bot has started
-    if (!this.core.client) throw new Error('(TH3E) client not available')
     let { to, content, log, options } = p
-    // check params consistency
+    // check if client is available
+    if (!this.core.client) throw new Error('(TH3E) client not available')
+    // Check inputs
     if (!is.string(to)) throw new Error(`(YJ87) invalid argument "to": ${sets.serialize(to)}`)
     if (!is.string(content)) throw new Error(`(RTHE) invalid argument "text": ${sets.serialize(content)}`)
     if (!is.string.or.undefined(log)) throw new Error(`(GH5H) invalid argument "log": ${sets.serialize(log)}`)
     if (!is.object.or.undefined(options)) throw new Error(`(867G) invalid argument "quote": ${sets.serialize(options)}`)
-    // fix parameters
+    // Fix inputs
     log = log || 'wapp::send'
-    // get number from contacts
+    // Get number from contacts
     to = this.getContactByName(to)
-    // send message
+    // Send Message
     const result = await handles.safe(this.core.client.sendMessage).async(to, content, options)
-    // set message object
+    // Get Message object
     const [ok, message] = result
-    // check for error
+    // Check for error
     if (!ok || is.error(message)) {
       console.error(`[${t()}] Throw(wapp::send) Catch(${message})`)
       return [false, message as Error]
     }
-    if (!is.object(message)) return [
-      false, 
-      new Error(
-        `(35RT) invalid response from sendMessage: ${sets.serialize(message)}`
-      )
-    ]
+    if (!is.object(message)) {
+      return [
+        false,
+        new Error(
+          `(35RT) invalid response from sendMessage: ${sets.serialize(message)}`
+        )
+      ]
+    }
     // log success
     console.log(`[${t()}] Sent(${log}) To(${to})`)
     // return message

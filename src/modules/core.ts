@@ -6,7 +6,6 @@ import type { Message } from 'whatsapp-web.js'
 
 // Import Misc
 import { is, sets, handles } from 'ts-misc'
-import { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Modules
 import type Wapp from './wapp'
@@ -19,7 +18,7 @@ const t = () => new Date().toLocaleString()
 
 // ##########################################################################################################################
 
-export default class WhatsappCore {
+export default class Core {
   wapp: Wapp
   actions: Record<string, IAction>
   repliables: Record<string, TAExec>
@@ -32,7 +31,6 @@ export default class WhatsappCore {
     Object.defineProperty(this, 'wapp',
       { get() { return wapp } }
     )
-
     // Set Properties
     this.actions = {}
     this.repliables = {}
@@ -45,42 +43,84 @@ export default class WhatsappCore {
 
   // ##########################################################################################################################
 
-  // Execute Actions
-  async execute(message: IMessage): Promise<unknown> {
-    // set initial
-    let actionName: string
+  // Add On-Message Trigger
+  onMessage<A extends string>(
+    p: { action: A, do: TExec } & (
+      A extends 'else' ? {} : { condition: TExec }
+    )
+  ): boolean {
+    const { action, condition } = p
+    // Check Inputs
+    if (!is.string(action)) throw new Error('invalid argument "action"')
+    if (action.length === 0) throw new Error('invalid argument "action"')
+    if (!is.function(p.do)) throw new Error('invalid argument "do"')
+    if (!is.function.or.undefined(condition)) throw new Error('invalid argument "condition"')
+    // Make action
+    let item: IAction
+    if (action === 'else') {
+      item = {
+        name: action,
+        do: handles.safe(p.do).async
+      }
+    } else {
+      item = {
+        name: action,
+        condition: handles.safe(condition).async,
+        do: handles.safe(p.do).async
+      }
+    }
+    // Add action
+    this.actions[action] = item
+    // Return done
+    return true
+  }
+
+  // ##########################################################################################################################
+
+  // Add On-Reply Trigger
+  onReply(p: { id: string, do: TExec }): boolean {
+    const { id } = p
+    if (!is.string(id)) throw new Error(`(V432) invalid argument "id": ${sets.serialize(id)}`)
+    if (!is.function(p.do)) throw new Error(`(U74H) invalid argument "do": ${sets.serialize(p.do)}`)
+    this.repliables[id] = handles.safe(p.do).async
+    return true
+  }
+
+  // ##########################################################################################################################
+
+  // Run Actions
+  async runActionLoop(message: IMessage): Promise<void> {
     try {
       // Check All Action Conditions
       for (const action of Object.values(this.actions)) {
         if (action.condition && action.name !== 'else') {
           const [cond, condError] = await action.condition(message)
           if (cond && !condError) {
-            actionName = action.name
             console.log(`[${t()}] Exec(bot::actions[${action.name}]) From(${message.from})`)
-            const [data, actionError] = await action.do(message)
-            if (actionError) throw actionError
-            else return data
+            const [ok, data] = await action.do(message)
+            if (!ok || is.error(data)) {
+              console.error(`[${t()}] Throw(bot::actions[${action.name}]) Catch(${data})`)
+            }
           }
         }
       }
       // do Else
       const action = this.actions.else
-      actionName = action.name
       console.log(`[${t()}] Exec(bot::actions[${action.name}]) From(${message.from})`)
-      const [data, actionError] = await action.do(message)
-      if (actionError) throw actionError
-      else return data
+      const [ok, data] = await action.do(message)
+      if (!ok || is.error(data)) {
+        console.error(`[${t()}] Throw(bot::actions[${action.name}]) Catch(${data})`)
+      }
     // if error occurred
     } catch (error) {
-      // log error
-      await console.error(`[${t()}] Throw(bot::actions[${actionName}]) Catch(${error})`)
+      console.error(`[${t()}] Throw(bot::action_loop) Catch(${error})`)
     }
   }
 
   // ##########################################################################################################################
 
-  // Run On-Message Triggers
-  async runOnMessage(message: Message): Promise<unknown> {
+  // Run On-Message Trigger
+  async runOnMessage(message: Message): Promise<void> {
     // Prevent execution if bot not available
     if (!this.client) return
     // Check Parameter
@@ -95,80 +135,36 @@ export default class WhatsappCore {
     // Check Mentioned
     const ment = sent.body.includes(`@${this.client.info.wid.user}`)
     if (ment) {
-      await sent.send({
+      await sent.reply({
         content: this.wapp.chat.gotMention,
-        log: 'got_mention',
-        options: { quotedMessageId: sent.id._serialized }
+        log: 'got_mention'
       })
     }
     // Check Quoted Message
-    if (is.object.in(sent, 'quotedMsg')) {
+    if (sent.hasQuotedMsg) {
       return await this.runOnReply(sent)
     }
-    // Execute Actions
-    let data = null
+    // Run Action-Loop
     if (ment || !isGroup) {
-      data = await this.execute(sent)
+      return await this.runActionLoop(sent)
     }
-    // Return Data
-    return data
   }
 
   // ##########################################################################################################################
 
-  // Run On-Reply Triggers
-  async runOnReply(message: IMessage): Promise<SafeReturn<unknown>> {
+  // Run On-Reply Trigger
+  async runOnReply(message: IMessage): Promise<void> {
     // Check for Quoted-Message Object
-    if (!message.hasQuotedMsg) {
-      throw new Error('invalid argument "message"')
-    }
+    if (!message.hasQuotedMsg) throw new Error('invalid argument "message"')
     const target = await message.getQuotedMessage()
+    // Search for Message Id
     if (is.in(this.repliables, target.id._serialized)) {
-      return this.repliables[target.id._serialized](message)
-    }
-  }
-
-  // ##########################################################################################################################
-
-  // Add On-Message Trigger
-  onMessage(p: {
-    action: string,
-    condition?: TExec
-    do: TExec
-  }) {
-    // Get Params
-    const { action, condition } = p
-    // Check Inputs
-    if (!is.function(p.do)) throw new Error('invalid argument "do"')
-    if (!is.function.or.null(condition)) throw new Error('invalid argument "condition"')
-    if (!is.string(action)) throw new Error('invalid argument "action"')
-    if (action.length === 0) throw new Error('invalid argument "action"')
-    // Execute Action
-    let push: IAction
-    push = {
-      name: action,
-      condition: handles.safe(condition).async,
-      do: handles.safe(p.do).async
-    }
-    if (action === 'else') {
-      push = {
-        name: action,
-        do: handles.safe(p.do).async
+      // Run On-Reply action if found
+      const [ok, data] = await this.repliables[target.id._serialized](message)
+      if (!ok || is.error(data)) {
+        console.error(`[${t()}] Throw(bot::repliables[${target.id._serialized}]) Catch(${data})`)
       }
     }
-    this.actions[action] = push
-    return true
-  }
-
-  // ##########################################################################################################################
-
-  // Add On-Reply Trigger
-  onReply(p: { id: string, do: TExec }): boolean {
-    const { id } = p
-    if (!is.string(id)) throw new Error(`(V432) invalid argument "id": ${sets.serialize(id)}`)
-    if (!is.function(p.do)) throw new Error(`(U74H) invalid argument "do": ${sets.serialize(p.do)}`)
-    this.repliables[id] = handles.safe(p.do).async
-    return true
   }
 }
 
