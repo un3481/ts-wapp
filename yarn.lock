@@ -2850,8 +2850,8 @@ tr46@~0.0.3:
   integrity sha512-iawgk0hLP3SxGKDfnDJf8wTz4p2qImnyihM5Hh/sGvQ3K37dPi/w8sRhdNIxYA1TwFwc5mDhIJq+O0RsvXBKdQ==
 
 ts-misc@un3481/ts-misc:
-  version "1.9.2"
-  resolved "https://codeload.github.com/un3481/ts-misc/tar.gz/4bfc65b73990d8c5b1b7f4a5a73593d7a3ae6b2e"
+  version "1.9.3"
+  resolved "https://codeload.github.com/un3481/ts-misc/tar.gz/23374f21025803b735d7fb8d954904359d5bafee"
   dependencies:
     tsconfig-paths "^3.9.0"
     typescript "^4.1.5"
