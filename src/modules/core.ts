@@ -2,15 +2,15 @@
 // ##########################################################################################################################
 
 // Import Venom
-import type Venom from 'venom-bot'
+import type { Message } from 'whatsapp-web.js'
 
 // Import Misc
 import { is, sets, handles } from 'ts-misc'
 import { SafeReturn } from 'ts-misc/dist/modules/handles'
 
-// Import Bot Types
-import type WhatsappCore from './'
-import type { IAction, TExec, TAExec, IMessage } from '../types'
+// Import Modules
+import type Wapp from './wapp'
+import type { IAction, TExec, TAExec, IMessage } from './types'
 
 // ##########################################################################################################################
 
@@ -19,22 +19,28 @@ const t = () => new Date().toLocaleString()
 
 // ##########################################################################################################################
 
-export default class Execute {
-  core: WhatsappCore
+export default class WhatsappCore {
+  wapp: Wapp
   actions: Record<string, IAction>
   repliables: Record<string, TAExec>
 
-  get wapp() { return this.core.wapp }
+  get client() { return this.wapp.client }
 
   // ##########################################################################################################################
 
-  constructor (core: WhatsappCore) {
-    Object.defineProperty(this, 'core',
-      { get() { return core } }
+  constructor (wapp: Wapp) {
+    Object.defineProperty(this, 'wapp',
+      { get() { return wapp } }
     )
-    // Set Lists
+
+    // Set Properties
     this.actions = {}
     this.repliables = {}
+    // Default Action
+    this.onMessage({
+      action: 'else',
+      do: msg => null
+    })
   }
 
   // ##########################################################################################################################
@@ -74,9 +80,9 @@ export default class Execute {
   // ##########################################################################################################################
 
   // Run On-Message Triggers
-  async runOnMessage(message: Venom.Message): Promise<unknown> {
+  async runOnMessage(message: Message): Promise<unknown> {
     // Prevent execution if bot not available
-    if (!this.core.client) return
+    if (!this.client) return
     // Check Parameter
     if (!is.object(message)) return
     if (!is.in(message, 'body')) return
@@ -85,13 +91,14 @@ export default class Execute {
     // Set Message Object
     const sent = this.wapp.setMessage(message)
     // Check for Group Message
-    const isGroup = sent.isGroupMsg === true
+    const isGroup = sent.author !== undefined
     // Check Mentioned
-    const ment = sent.body.includes(`@${(await this.core.getHostDevice()).user}`)
+    const ment = sent.body.includes(`@${this.client.info.wid.user}`)
     if (ment) {
-      await sent.quote({
-        text: this.wapp.chat.gotMention,
-        log: 'got_mention'
+      await sent.send({
+        content: this.wapp.chat.gotMention,
+        log: 'got_mention',
+        options: { quotedMessageId: sent.id._serialized }
       })
     }
     // Check Quoted Message
@@ -112,12 +119,12 @@ export default class Execute {
   // Run On-Reply Triggers
   async runOnReply(message: IMessage): Promise<SafeReturn<unknown>> {
     // Check for Quoted-Message Object
-    if (!is.object.in(message, 'quotedMsg')) {
+    if (!message.hasQuotedMsg) {
       throw new Error('invalid argument "message"')
     }
-    const replyable = message.quotedMsg.id
-    if (is.in(this.repliables, replyable)) {
-      return this.repliables[replyable](message)
+    const target = await message.getQuotedMessage()
+    if (is.in(this.repliables, target.id._serialized)) {
+      return this.repliables[target.id._serialized](message)
     }
   }
 

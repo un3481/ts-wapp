@@ -8,17 +8,18 @@
 #                                 ---------------- Python3 --- NodeJS ----------------                                   #
 #                                                 * Under Development *                                                  #
 #                                           https://github.com/un3481/ts-wapp                                            #
-#                                                 Powered by venom-bot                                                   #
+#                                              Powered by whatsapp-web.js                                                #
 #                                                                                                                        #
 ##########################################################################################################################
 */
 
-// Imports
-import Whatsapp from './modules/wapp'
-import WhatsappServer from './modules/server'
+export {}
 
 // Exports
-export const Wapp = Whatsapp
-export const Server = WhatsappServer
+module.exports = {
+  Wapp: require('./modules/wapp'),
+  Server: require('./modules/server'),
+  version: require('./package.json').version
+}
 
 // ##########################################################################################################################

@@ -45,9 +45,9 @@ export default class Server {
   // ##########################################################################################################################
 
   // Request
-  async req(p: { target: ITarget, data: any }): Promise<AxiosResponse<any>> {
+  async req(p: { target: ITarget, data: unknown }): Promise<SafeReturn<AxiosResponse<any>>> {
     const { target, data } = p
-    return axios.post(
+    return handles.safe(axios.post).async(
       target.address,
       sets.serialize(data),
       {
@@ -57,15 +57,6 @@ export default class Server {
         }
       }
     )
-  }
-
-  // ##########################################################################################################################
-
-  // Safe Request
-  async sreq(p: { target: ITarget, data: any }): Promise<SafeReturn<AxiosResponse<any>>> {
-    return await handles.safe(
-      this.req.bind(this) as (typeof Server.prototype.req)
-    ).async(p)
   }
 
   // ##########################################################################################################################
@@ -142,25 +133,29 @@ export default class Server {
         // check request
         if (!is.object(req.body)) throw new Error('bad request')
         // eslint-disable-next-line camelcase
-        const { to, text, log, quote, referer } = req.body as {
-          to: unknown, text: unknown, log: unknown, quote: unknown, referer: unknown
+        const { to, content, log, options, referer } = req.body as {
+          to: unknown,
+          content: unknown,
+          log?: unknown,
+          options?: unknown,
+          referer?: unknown
         }
         // check arguments
         if (!is.string(to)) throw new Error('invalid argument "to"')
-        if (!is.string.or.null(text)) throw new Error('invalid argument "text"')
+        if (!is.string(content)) throw new Error('invalid argument "content"')
         if (!is.string.or.null(log)) throw new Error('invalid argument "log"')
-        if (!is.string.or.null(quote)) throw new Error('invalid argument "quote"')
+        if (!is.object.or.null(options)) throw new Error('invalid argument "quote"')
         // fix parameters
         const p = {
           to: to,
-          text: text || '',
+          content: content,
           log: log || 'remote::send',
-          quote: quote
+          options: options
         }
         // get referer
         const ref = isTarget(referer) ? referer : null
         // send message
-        const [ok, sent] = await this.wapp.ssend(p)
+        const [ok, sent] = await this.wapp.send(p)
         // if not done prevent execution
         if (!ok || is.error(sent)) throw sent
         // set default reply action
@@ -174,7 +169,7 @@ export default class Server {
             }
           }
           // send on-reply trigger
-          const [ok, data] = await this.sreq(args)
+          const [ok, data] = await this.req(args)
           if (!ok) throw data
           return data
         })
@@ -185,32 +180,13 @@ export default class Server {
 
     // ##########################################################################################################################
 
-    // Add get-message Action
-    this.add({
-      app: app,
-      base: base,
-      action: 'get_message_by_id',
-      do: async req => {
-        // check request
-        if (!is.object.in(req, 'body')) throw new Error('bad request')
-        // eslint-disable-next-line camelcase
-        const { id } = req.body as { id: unknown }
-        // Check Inputs
-        if (!is.string(id)) throw new Error('invalid argument "id"')
-        if (id.length === 0) throw new Error('invalid argument "id"')
-        return this.wapp.getMessageById(id)
-      }
-    })
-
-    // ##########################################################################################################################
-
     // Add host-device Action
     this.add({
       app: app,
       base: base,
       action: 'get_host_device',
-      do: async req => {
-        return this.wapp.getHostDevice()
+      do: req => {
+        return this.wapp.client.info.wid
       }
     })
 

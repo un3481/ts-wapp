@@ -1,9 +1,8 @@
 
 // ##########################################################################################################################
 
-// Import Venom Type
-import type Venom from 'venom-bot'
-import type VenomHostDevice from 'venom-bot/dist/api/model/host-device'
+// Import Whatsapp Types
+import type { Message, MessageSendOptions } from 'whatsapp-web.js'
 
 // Import Express-Core Type
 import type * as expressCore from 'express-serve-static-core'
@@ -34,26 +33,14 @@ export interface IAction {
 
 // ##########################################################################################################################
 
-// Message Text Type
-export type TFetchString = string | Promise<string> | (() => string | Promise<string>)
-
-// ##########################################################################################################################
-
 // Sent Message Interface
-export interface IMessage extends Venom.Message {
-  readonly wapp: Wapp
-  readonly quotedMsg: IMessage | undefined
-  send(p: { text?: TFetchString, log?: TFetchString, quote?: TFetchString }): Promise<IMessage>
-  quote(p: { text?: TFetchString, log?: TFetchString }): Promise<IMessage>
+export interface IMessage extends Message {
+  send(p: { content?: string, log?: string, options?: MessageSendOptions }): Promise<IMessage>
   clean(): string
-  on: {
-    reply(exec: TExec): boolean
+  readonly wapp: Wapp
+  readonly on: {
+    reply(fun: TExec): boolean
   }
-}
-
-// Sent Text Object
-export interface IMessageTextObj {
-  to: { _serialized: string }
 }
 
 // ##########################################################################################################################
@@ -70,12 +57,6 @@ export const isTarget = (obj: unknown): obj is ITarget => {
   if (!is.object(obj)) return false
   if (!is.string.in(obj, ['address', 'user', 'password'])) return false
   return true
-}
-
-// ##########################################################################################################################
-
-export interface WappHostDevice extends VenomHostDevice.Me {
-  session: string
 }
 
 // ##########################################################################################################################

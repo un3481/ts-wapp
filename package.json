@@ -19,7 +19,7 @@
     "ts-misc": "un3481/ts-misc",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.1.5",
-    "venom-bot": "^4.3.7"
+    "whatsapp-web.js": "^1.18.4"
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",

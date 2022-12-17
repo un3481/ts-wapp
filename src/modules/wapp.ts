@@ -1,7 +1,7 @@
 // ##########################################################################################################################
 
 // Import Venom
-import Venom from 'venom-bot'
+import { Client, Message, MessageSendOptions } from 'whatsapp-web.js'
 
 // Import Super-Guard
 import { is, sets, handles } from 'ts-misc'
@@ -9,10 +9,10 @@ import { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Modules Types
 import { isTarget } from './types'
-import type { TExec, TFetchString, IMessage, ITarget } from './types'
+import type { TExec, IMessage, ITarget } from './types'
 
 // Import Modules
-import WhatsappCore from './core'
+import Core from './core'
 import Chat from './chat'
 
 // ##########################################################################################################################
@@ -23,17 +23,21 @@ const t = () => new Date().toLocaleString()
 // ##########################################################################################################################
 
 export default class Wapp {
-  core: WhatsappCore
+  core: Core
+  client: Client
   target: ITarget
   chat: Chat
   contacts: Record<string, string>
 
   // ##########################################################################################################################
 
-  constructor (source: Venom.Whatsapp | ITarget) {
+  constructor (source: Client | ITarget) {
     // Verify Input
-    if (source instanceof Venom.Whatsapp) {
-      this.core = new WhatsappCore(this, source)
+    if (source instanceof Client) {
+      Object.defineProperty(this, 'client',
+        { get() { return source } }
+      )
+      this.core = new Core(this)
     } else if (isTarget(source)) {
       this.target = source
     }
@@ -45,18 +49,8 @@ export default class Wapp {
   // ##########################################################################################################################
 
   // Add On-Message Action
-  get onMessage(): (typeof WhatsappCore.prototype.onMessage) {
+  get onMessage(): (typeof Core.prototype.onMessage) {
     return this.core.onMessage
-  }
-
-  // Get Venom-Bot Host
-  get getHostDevice(): (typeof WhatsappCore.prototype.getHostDevice) {
-    return this.core.getHostDevice
-  }
-
-  // Get Message
-  get getMessageById(): (typeof WhatsappCore.prototype.getMessageById) {
-    return this.core.getMessageById
   }
 
   // ##########################################################################################################################
@@ -87,32 +81,10 @@ export default class Wapp {
 
   // ##########################################################################################################################
 
-  // fetch data for message
-  async fetch(data: TFetchString): Promise<string> {
-    // Set Resolution Variable
-    let resolution: string = null
-    // check type-of input
-    if (is.string(data)) resolution = data
-    else if (is.promise(data)) resolution = await data
-    else if (is.function(data)) {
-      const preRes = data()
-      if (is.string(preRes)) resolution = preRes
-      else if (is.promise(preRes)) resolution = await preRes
-    }
-    // check type-of output
-    if (!is.string(resolution)) resolution = null
-    // return text
-    return resolution
-  }
-
-  // ##########################################################################################################################
-
   // Message Constructor
-  setMessage(sent: Venom.Message): IMessage {
+  setMessage(sent: Message): IMessage {
     // Prevent Empty Message Objects
     if (!is.object(sent)) throw new Error(`(T78J) invalid argument "sent": ${sets.serialize(sent)}`)
-    // Fix Author on Private Messages
-    if (!sent.isGroupMsg) sent.author = sent.from
     // Allow Cyclic Reference
     const wapp = this
     // Assign Message Properties
@@ -123,41 +95,28 @@ export default class Wapp {
         ...Object.getOwnPropertyDescriptors({
           // Wapp
           get wapp () { return wapp },
-          // Set Properties
-          id: sent.id,
-          body: sent.body,
           // Fix Contact Names
           from: wapp.getContactByName(sent.from, -1),
           author: wapp.getContactByName(sent.author, -1),
           // Fix Quoted Message Object
-          quotedMsg: (
-            is.object.in(sent, 'quotedMsgObj')
-              ? wapp.setMessage(sent.quotedMsgObj)
-              : null
-          ),
-          quotedMsgObj: sent.quotedMsgObj,
+          getQuotedMessage: async () => {
+            if (is.true.in(sent, 'hasQuotedMsg')) {
+              const message = await sent.getQuotedMessage()
+              return wapp.setMessage(message)
+            }
+            return null
+          },
           // Send Message to Chat
           async send(p: {
-            text?: TFetchString,
-            log?: TFetchString,
-            quote?: TFetchString
-          }): Promise<IMessage> {
-            return this.wapp.send({
+            content: string,
+            log?: string,
+            options?: MessageSendOptions
+          }): Promise<SafeReturn<IMessage>> {
+            return (this.wapp as Wapp).send({
               to: this.from,
-              text: p.text,
+              content: p.content,
               log: p.log,
-              quote: p.quote
-            })
-          },
-          // Quote Message
-          async quote(p: {
-            text?: TFetchString,
-            log?: TFetchString
-          }): Promise<IMessage> {
-            return this.send({
-              text: p.text,
-              log: p.log,
-              quote: this.id
+              options: p.options
             })
           },
           // Set On-Reply Action
@@ -166,7 +125,7 @@ export default class Wapp {
               reply(execute: TExec) {
                 if (!is.function(execute)) throw new Error(`(4RCD) invalid argument "execute": ${this.misc.sets.serialize(sent)}`)
                 wapp.core.onReply({
-                  id: sent.id,
+                  id: sent.id._serialized,
                   do: execute
                 })
                 return true
@@ -188,64 +147,42 @@ export default class Wapp {
 
   // Send Message Method
   async send(p: {
-    to: TFetchString,
-    text?: TFetchString,
-    log?: TFetchString,
-    quote?: TFetchString
-  }): Promise<IMessage> {
+    to: string,
+    content: string,
+    log?: string,
+    options?: MessageSendOptions
+  }): Promise<SafeReturn<IMessage>> {
     // check if bot has started
-    if (!this.core.client) throw new Error('(TH3E) bot not available')
-    // fetch text data
-    let to = await this.fetch(p.to)
-    let text = await this.fetch(p.text)
-    let log = await this.fetch(p.log)
-    const quote = await this.fetch(p.quote)
+    if (!this.core.client) throw new Error('(TH3E) client not available')
+    let { to, content, log, options } = p
     // check params consistency
     if (!is.string(to)) throw new Error(`(YJ87) invalid argument "to": ${sets.serialize(to)}`)
-    if (!is.string.or.null(text)) throw new Error(`(RTHE) invalid argument "text": ${sets.serialize(text)}`)
-    if (!is.string.or.null(log)) throw new Error(`(GH5H) invalid argument "log": ${sets.serialize(log)}`)
-    if (!is.string.or.null(quote)) throw new Error(`(867G) invalid argument "quote": ${sets.serialize(quote)}`)
+    if (!is.string(content)) throw new Error(`(RTHE) invalid argument "text": ${sets.serialize(content)}`)
+    if (!is.string.or.undefined(log)) throw new Error(`(GH5H) invalid argument "log": ${sets.serialize(log)}`)
+    if (!is.object.or.undefined(options)) throw new Error(`(867G) invalid argument "quote": ${sets.serialize(options)}`)
     // fix parameters
-    text = text || ''
     log = log || 'wapp::send'
     // get number from contacts
     to = this.getContactByName(to)
     // send message
-    const result = (quote
-      ? await handles.safe(this.core.sendReply).async({ to: to, text: text, quote: quote })
-      : await handles.safe(this.core.sendText).async({ to: to, text: text })
-    )
+    const result = await handles.safe(this.core.client.sendMessage).async(to, content, options)
     // set message object
-    const [ok, data] = result
+    const [ok, message] = result
     // check for error
-    if (!ok || is.error(data)) {
-      console.error(`[${t()}] Throw(wapp::send) Catch(${data})`)
-      throw data
+    if (!ok || is.error(message)) {
+      console.error(`[${t()}] Throw(wapp::send) Catch(${message})`)
+      return [false, message as Error]
     }
-    if (!is.object(data)) {
-      throw new Error(
-        `(35RT) invalid response from sendMessage: ${sets.serialize(data)}`
+    if (!is.object(message)) return [
+      false, 
+      new Error(
+        `(35RT) invalid response from sendMessage: ${sets.serialize(message)}`
       )
-    }
-    // on success
-    await console.log(`[${t()}] Sent(${log}) To(${to})`)
-    const sent = this.setMessage(data)
+    ]
+    // log success
+    console.log(`[${t()}] Sent(${log}) To(${to})`)
     // return message
-    return sent
-  }
-
-  // ##########################################################################################################################
-
-  // Safe Send Message Method
-  async ssend(p: {
-    to: TFetchString,
-    text?: TFetchString,
-    log?: TFetchString,
-    quote?: TFetchString
-  }): Promise<SafeReturn<IMessage>> {
-    return await handles.safe(
-      this.send.bind(this) as typeof Wapp.prototype.send
-    ).async(p)
+    return [true, this.setMessage(message)]
   }
 }
 

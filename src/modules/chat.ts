@@ -27,7 +27,7 @@ export default class Chat {
     if (is.string(message)) str = message
     else str = message.body
     str = lower ? str.toLowerCase() : str
-    str = str.replace(`@${(await this.wapp.getHostDevice()).user}`, '')
+    str = str.replace(`@${this.wapp.client.info.wid.user}`, '')
     while (str.includes('  ')) str = str.replace('  ', ' ')
     str = str.trim()
     str = str.normalize('NFD')
