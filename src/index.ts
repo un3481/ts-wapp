@@ -13,13 +13,22 @@
 ##########################################################################################################################
 */
 
-export {}
+// Imports
+import Server from './modules/server'
+import Wapp from './modules/wapp'
+
+// ##########################################################################################################################
+
+// Default Export
+export default {
+  Server: Server,
+  Wapp: Wapp
+}
 
 // Exports
-module.exports = {
-  Wapp: require('./modules/wapp'),
-  Server: require('./modules/server'),
-  version: require('./package.json').version
+export {
+  Server,
+  Wapp
 }
 
 // ##########################################################################################################################
