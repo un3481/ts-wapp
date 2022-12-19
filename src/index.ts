@@ -15,20 +15,26 @@
 
 // Imports
 import Server from './modules/server'
-import Wapp from './modules/wapp'
+import Wapp from './modules/core'
+import * as Utils from './modules/utils'
+import * as Chat from './modules/chat'
 
 // ##########################################################################################################################
 
 // Default Export
 export default {
   Server: Server,
-  Wapp: Wapp
+  Wapp: Wapp,
+  Chat: Chat,
+  Utils: Utils
 }
 
 // Exports
 export {
   Server,
-  Wapp
+  Wapp,
+  Chat,
+  Utils
 }
 
 // ##########################################################################################################################

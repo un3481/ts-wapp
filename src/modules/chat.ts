@@ -6,38 +6,39 @@ import { is, sets, strings } from 'ts-misc'
 import type { ValueOf } from 'ts-misc/dist/modules/types'
 
 // Import Modules
-import type Wapp from './wapp'
-import type { IMessage } from './types'
+import type { MessageLike } from './types'
 
 // ##########################################################################################################################
 
-// Defines Chat Object
-export default class Chat {
-  wapp: Wapp
-
-  constructor (wapp: Wapp) {
-    Object.defineProperty(this, 'wapp',
-      { get() { return wapp } }
-    )
+// Clean Message
+export const clean = (
+  message: string | MessageLike,
+  options: {
+    lower?: boolean,
+    user?: string
   }
+): string => {
+  let body: string = (
+    is.string(message)
+      ? message
+      : message.body
+  )
+  body = options.lower ? body.toLowerCase() : body
+  body = options.user ? body.replace(`@${options.user}`, '') : body
+  while (body.includes('  ')) body = body.replace('  ', ' ')
+  body = body.trim()
+  body = body.normalize('NFD')
+  body = body.replace(/[\u0300-\u036f]/g, '')
+  return body
+}
 
-  // Clean Message
-  clean(message: string | IMessage, lower = true): string {
-    let str: string = ''
-    if (is.string(message)) str = message
-    else str = message.body
-    str = lower ? str.toLowerCase() : str
-    str = str.replace(`@${this.wapp.client.info.wid.user}`, '')
-    while (str.includes('  ')) str = str.replace('  ', ' ')
-    str = str.trim()
-    str = str.normalize('NFD')
-    str = str.replace(/[\u0300-\u036f]/g, '')
-    return str
-  }
+// ##########################################################################################################################
 
-  // ##########################################################################################################################
-
-  get timeGreet() {
+export const greet = {
+  get hi() {
+    return sets.rand(['Opa!!', 'Ola!', 'Oi!'] as const)
+  },
+  get time() {
     const h = new Date().getHours()
     const g = {
       6: 'Bom dia 🥱',
@@ -51,31 +52,37 @@ export default class Chat {
       }
     }
   }
+}
 
-  get hi() {
-    return sets.rand(['Opa!!', 'Ola!', 'Oi!'] as const)
-  }
+// ##########################################################################################################################
 
+export const got = {
   get done() {
     return sets.rand(['Pronto!', 'Certo!', 'Ok!'] as const)
-  }
-
-  get gotIt() {
-    const hi = sets.rand([this.hi, this.hi, ''] as const)
+  },
+  get mention() {
+    const ack = sets.rand(['🙋‍♂️', '😁'] as const)
+    const me = sets.rand(['Eu', 'Aqui'] as const)
+    // Assembly
+    return strings.join([ack, ' ', me] as const, '')
+  },
+  get order() {
+    const hi = sets.rand([greet.hi, greet.hi, ''] as const)
     const git = sets.rand(['é pra já! 👍', 'entendido! 👍', 'Ok! 👍',
       'como desejar! 👍', 'deixa comigo! 👍', 'pode deixar! 👍'
     ] as const)
     // Assembly
     return strings.join([
-      hi, (hi === '' ? '' : ' '), this.timeGreet, ', ', git
+      hi, (hi === '' ? '' : ' '), greet.time, ', ', git
     ] as const, '')
   }
+}
 
-  get gotMention() {
-    const ack = sets.rand(['🙋‍♂️', '😁'] as const)
-    const me = sets.rand(['Eu', 'Aqui'] as const)
-    // Assembly
-    return strings.join([ack, ' ', me] as const, '')
+// ##########################################################################################################################
+
+export const reply = {
+  async mention<M extends MessageLike>(message: M) {
+    return await message.reply(got.mention)
   }
 }
 

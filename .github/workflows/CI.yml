@@ -1,0 +1,29 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test-node:
+    name: Test using Node.js v${{ matrix.node }}
+    runs-on: ubuntu-20.04
+
+    env:
+      NODE_ENV: test
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - node: '14'
+          - node: '16'
+          - node: '18'
+          - node: '19'
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test using Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - run: yarn
+      - run: yarn test

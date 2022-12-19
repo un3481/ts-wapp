@@ -1,15 +1,13 @@
 
 // ##########################################################################################################################
 
-// Import Venom
-import type { Message } from 'whatsapp-web.js'
-
 // Import Misc
 import { is, sets, handles } from 'ts-misc'
+import type { SafeReturn } from 'ts-misc/dist/modules/handles'
+import type { Await } from 'ts-misc/dist/modules/types'
 
 // Import Modules
-import type Wapp from './wapp'
-import type { IAction, TExec, TAExec, IMessage } from './types'
+import type { Trigger, TriggerCall, ClientLike } from './types'
 
 // ##########################################################################################################################
 
@@ -18,59 +16,58 @@ const t = () => new Date().toLocaleString()
 
 // ##########################################################################################################################
 
-export default class Core {
-  wapp: Wapp
-  actions: Record<string, IAction>
-  repliables: Record<string, TAExec>
-
-  get client() { return this.wapp.client }
+class WhatsappOn<
+  C extends ClientLike,
+  M extends Await<ReturnType<C['sendMessage']>> = Await<ReturnType<C['sendMessage']>>
+> {
+  core: WhatsappCore<C, M>
 
   // ##########################################################################################################################
 
-  constructor (wapp: Wapp) {
-    Object.defineProperty(this, 'wapp',
-      { get() { return wapp } }
+  constructor (core: WhatsappCore<C, M>) {
+    Object.defineProperty(this, 'core',
+      { get() { return core } }
     )
-    // Set Properties
-    this.actions = {}
-    this.repliables = {}
-    // Default Action
-    this.onMessage({
-      action: 'else',
-      do: msg => null
+    // Default Trigger
+    this.message({
+      name: 'else',
+      fun: msg => null
     })
   }
 
   // ##########################################################################################################################
 
   // Add On-Message Trigger
-  onMessage<A extends string>(
-    p: { action: A, do: TExec } & (
-      A extends 'else' ? {} : { condition: TExec }
-    )
-  ): boolean {
-    const { action, condition } = p
+  message<A extends string>(trigger: {
+    name: A,
+    fun: TriggerCall<M, unknown>
+  } & (
+    A extends 'else'
+      ? {}
+      : { condition: TriggerCall<M, boolean> }
+  )): boolean {
+    const { name, condition, fun } = trigger
     // Check Inputs
-    if (!is.string(action)) throw new Error('invalid argument "action"')
-    if (action.length === 0) throw new Error('invalid argument "action"')
-    if (!is.function(p.do)) throw new Error('invalid argument "do"')
+    if (!is.string(name)) throw new Error('invalid argument "name"')
+    if (name.length === 0) throw new Error('invalid argument "name"')
+    if (!is.function(fun)) throw new Error('invalid argument "fun"')
     if (!is.function.or.undefined(condition)) throw new Error('invalid argument "condition"')
     // Make action
-    let item: IAction
-    if (action === 'else') {
-      item = {
-        name: action,
-        do: handles.safe(p.do).async
+    let safeTrigger: Trigger<M>
+    if (name === 'else') {
+      safeTrigger = {
+        name: name,
+        fun: handles.safe(fun).async
       }
     } else {
-      item = {
-        name: action,
+      safeTrigger = {
+        name: name,
         condition: handles.safe(condition).async,
-        do: handles.safe(p.do).async
+        fun: handles.safe(fun).async
       }
     }
-    // Add action
-    this.actions[action] = item
+    // Add trigger
+    this.core.triggers[name] = safeTrigger
     // Return done
     return true
   }
@@ -78,38 +75,56 @@ export default class Core {
   // ##########################################################################################################################
 
   // Add On-Reply Trigger
-  onReply(p: { id: string, do: TExec }): boolean {
-    const { id } = p
-    if (!is.string(id)) throw new Error(`(V432) invalid argument "id": ${sets.serialize(id)}`)
-    if (!is.function(p.do)) throw new Error(`(U74H) invalid argument "do": ${sets.serialize(p.do)}`)
-    this.repliables[id] = handles.safe(p.do).async
+  reply(
+    id: string,
+    fun: TriggerCall<M, unknown>
+  ): boolean {
+    if (!is.string(id)) throw new Error(`invalid argument "id": ${sets.serialize(id)}`)
+    if (!is.function(fun)) throw new Error(`invalid argument fun": ${sets.serialize(fun)}`)
+    this.core.repliables[id] = handles.safe(fun).async
     return true
+  }
+}
+
+// ##########################################################################################################################
+
+class WhatsappRun<
+  C extends ClientLike,
+  M extends Await<ReturnType<C['sendMessage']>> = Await<ReturnType<C['sendMessage']>>
+> {
+  core: WhatsappCore<C, M>
+
+  // ##########################################################################################################################
+
+  constructor (core: WhatsappCore<C, M>) {
+    Object.defineProperty(this, 'core',
+      { get() { return core } }
+    )
   }
 
   // ##########################################################################################################################
 
   // Run Actions
-  async runActionLoop(message: IMessage): Promise<void> {
+  async triggerLoop(message: M): Promise<void> {
     try {
       // Check All Action Conditions
-      for (const action of Object.values(this.actions)) {
-        if (action.condition && action.name !== 'else') {
-          const [cond, condError] = await action.condition(message)
-          if (cond && !condError) {
-            console.log(`[${t()}] Exec(bot::actions[${action.name}]) From(${message.from})`)
-            const [ok, data] = await action.do(message)
-            if (!ok || is.error(data)) {
-              console.error(`[${t()}] Throw(bot::actions[${action.name}]) Catch(${data})`)
-            }
+      for (const trigger of Object.values(this.core.triggers)) {
+        if (!is.function(trigger.condition) || trigger.name === 'else') continue
+        const [ok, cond] = await trigger.condition(message)
+        if (ok && !is.error(cond) && cond) {
+          console.log(`[${t()}] Exec(bot::actions[${trigger.name}]) From(${message.from})`)
+          const [ok, data] = await trigger.fun(message)
+          if (!ok || is.error(data)) {
+            console.error(`[${t()}] Throw(bot::actions[${trigger.name}]) Catch(${data})`)
           }
         }
       }
       // do Else
-      const action = this.actions.else
-      console.log(`[${t()}] Exec(bot::actions[${action.name}]) From(${message.from})`)
-      const [ok, data] = await action.do(message)
+      const trigger = this.core.triggers.else
+      console.log(`[${t()}] Exec(bot::actions[${trigger.name}]) From(${message.from})`)
+      const [ok, data] = await trigger.fun(message)
       if (!ok || is.error(data)) {
-        console.error(`[${t()}] Throw(bot::actions[${action.name}]) Catch(${data})`)
+        console.error(`[${t()}] Throw(bot::actions[${trigger.name}]) Catch(${data})`)
       }
     // if error occurred
     } catch (error) {
@@ -120,51 +135,70 @@ export default class Core {
   // ##########################################################################################################################
 
   // Run On-Message Trigger
-  async runOnMessage(message: Message): Promise<void> {
+  async message(message: M): Promise<void> {
     // Prevent execution if bot not available
-    if (!this.client) return
+    if (!this.core.client) return
     // Check Parameter
     if (!is.object(message)) return
     if (!is.in(message, 'body')) return
     // Prevent Broadcast
     if (message.from === 'status@broadcast') return
-    // Set Message Object
-    const sent = this.wapp.setMessage(message)
     // Check for Group Message
-    const isGroup = sent.author !== undefined
-    // Check Mentioned
-    const ment = sent.body.includes(`@${this.client.info.wid.user}`)
-    if (ment) {
-      await sent.reply({
-        content: this.wapp.chat.gotMention,
-        log: 'got_mention'
-      })
-    }
+    const isGroup = message.author !== undefined
     // Check Quoted Message
-    if (sent.hasQuotedMsg) {
-      return await this.runOnReply(sent)
+    if (message.hasQuotedMsg) {
+      return await this.reply(message)
     }
+    // Check Mentioned
+    const ment = message.body.includes(`@${this.core.client.info.wid.user}`)
     // Run Action-Loop
     if (ment || !isGroup) {
-      return await this.runActionLoop(sent)
+      return await this.triggerLoop(message)
     }
   }
 
   // ##########################################################################################################################
 
   // Run On-Reply Trigger
-  async runOnReply(message: IMessage): Promise<void> {
+  async reply(message: M): Promise<void> {
     // Check for Quoted-Message Object
     if (!message.hasQuotedMsg) throw new Error('invalid argument "message"')
     const target = await message.getQuotedMessage()
     // Search for Message Id
-    if (is.in(this.repliables, target.id._serialized)) {
+    if (is.in(this.core.repliables, target.id._serialized)) {
       // Run On-Reply action if found
-      const [ok, data] = await this.repliables[target.id._serialized](message)
+      const [ok, data] = await this.core.repliables[target.id._serialized](message)
       if (!ok || is.error(data)) {
         console.error(`[${t()}] Throw(bot::repliables[${target.id._serialized}]) Catch(${data})`)
       }
     }
+  }
+}
+
+// ##########################################################################################################################
+
+export default class WhatsappCore<
+  C extends ClientLike,
+  M extends Await<ReturnType<C['sendMessage']>> = Await<ReturnType<C['sendMessage']>>
+> {
+  client: C
+  triggers: Record<string, Trigger<M>>
+  repliables: Record<string, TriggerCall<M, SafeReturn<unknown>>>
+  on: WhatsappOn<C, M>
+  run: WhatsappRun<C, M>
+
+  // ##########################################################################################################################
+
+  constructor (client: C) {
+    Object.defineProperty(this, 'client',
+      { get() { return client } }
+    )
+    // Set Properties
+    this.triggers = {}
+    this.repliables = {}
+    // Set Triggers
+    this.on = new WhatsappOn(this)
+    this.run = new WhatsappRun(this)
   }
 }
 
