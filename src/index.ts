@@ -15,7 +15,7 @@
 
 // Imports
 import Server from './modules/server'
-import Wapp from './modules/core'
+import Wapp from './modules/wapp'
 import * as Utils from './modules/utils'
 import * as Chat from './modules/chat'
 

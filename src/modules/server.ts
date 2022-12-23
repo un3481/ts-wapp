@@ -18,7 +18,7 @@ import type { SafeReturn } from 'ts-misc/dist/modules/handles'
 // Import Modules
 import { isTarget } from './types'
 import type { TriggerCall, ITarget, ClientLike } from './types'
-import type WhatsappCore from './core'
+import type WhatsappCore from './wapp'
 
 // ##########################################################################################################################
 

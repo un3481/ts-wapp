@@ -42,7 +42,7 @@ interface MessageIdLike {
 }
 
 // Message Mock
-interface MessageLike {
+export interface MessageLike {
   author?: string,
   body: string,
   from: string,
