@@ -17,7 +17,7 @@ describe('test Server[WAWeb.Client]', () => {
     expect( verified ).toBe( true );
   });
 
-  test('test Wapp[WAWeb.Client] Message type', () => {
+  test('test Server[WAWeb.Client] Message type', () => {
     type ServerWAWeb = Server<Client>;
     type Verify = CheckBool<
         Extends<
