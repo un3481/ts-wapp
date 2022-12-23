@@ -14,7 +14,6 @@ import type { AxiosResponse } from 'axios'
 // Import Misc Modules
 import { is, sets, handles } from 'ts-misc'
 import type { SafeReturn } from 'ts-misc/dist/modules/handles'
-import type { Await } from 'ts-misc/dist/modules/types'
 
 // Import Modules
 import { isTarget } from './types'
@@ -30,16 +29,15 @@ const t = () => new Date().toLocaleString()
 
 // Server Trigger Class
 class ServerOn<
-  C extends ClientLike,
-  M extends Await<ReturnType<C['sendMessage']>> = Await<ReturnType<C['sendMessage']>>
+  C extends ClientLike
 > {
-  server: Server<C, M>
+  server: Server<C>
   users: Record<string, string>
   auth: string
 
   // ##########################################################################################################################
 
-  constructor (server: Server<C, M>) {
+  constructor (server: Server<C>) {
     Object.defineProperty(this, 'server',
       { get() { return server } }
     )
@@ -89,17 +87,16 @@ class ServerOn<
 
 // API Class
 export default class Server<
-  C extends ClientLike,
-  M extends Await<ReturnType<C['sendMessage']>> = Await<ReturnType<C['sendMessage']>>
+  C extends ClientLike
 > {
-  core: WhatsappCore<C, M>
+  core: WhatsappCore<C>
   users: Record<string, string>
   auth: string
-  on: ServerOn<C, M>
+  on: ServerOn<C>
 
   // ##########################################################################################################################
 
-  constructor (core: WhatsappCore<C, M>) {
+  constructor (core: WhatsappCore<C>) {
     Object.defineProperty(this, 'core',
       { get() { return core } }
     )

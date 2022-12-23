@@ -42,7 +42,7 @@ interface MessageIdLike {
 }
 
 // Message Mock
-export interface MessageLike {
+interface MessageLike {
   author?: string,
   body: string,
   from: string,
@@ -69,6 +69,8 @@ type MessageContentLike = string
 
 // MessageSendOptions Mock
 interface MessageSendOptionsLike {}
+
+// ##########################################################################################################################
 
 // Client Mock
 export interface ClientLike {

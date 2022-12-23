@@ -11,8 +11,8 @@ import type { MessageLike } from './types'
 // ##########################################################################################################################
 
 // Clean Message
-export const clean = (
-  message: string | MessageLike,
+export const clean = <M extends MessageLike>(
+  message: string | M,
   options: {
     lower?: boolean,
     user?: string
