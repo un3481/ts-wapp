@@ -1,10 +1,10 @@
 import { CheckBool, Extends } from 'ts-misc/dist/modules/types';
 import type { Server } from '../src/index';
-import type { Client } from 'whatsapp-web.js';
+import type { Client, Message } from 'whatsapp-web.js';
 
 describe('test Server[WAWeb.Client]', () => {
 
-  test('test Server[WAWeb.Client] types', () => {
+  test('test Server[WAWeb.Client] Client type', () => {
     type ServerWAWeb = Server<Client>;
     type Verify = CheckBool<
         Extends<
@@ -13,6 +13,20 @@ describe('test Server[WAWeb.Client]', () => {
         >
     >;
     const verified: Verify = true;
-    if (!verified) throw new Error('types don\'t match');
+
+    expect( verified ).toBe( true );
+  });
+
+  test('test Wapp[WAWeb.Client] Message type', () => {
+    type ServerWAWeb = Server<Client>;
+    type Verify = CheckBool<
+        Extends<
+            ReturnType<ServerWAWeb['core']['client']['sendMessage']>,
+            Promise<Message>
+        >
+    >;
+    const verified: Verify = true;
+
+    expect( verified ).toBe( true );
   });
 })

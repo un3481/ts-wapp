@@ -4,7 +4,20 @@ import type { Client, Message } from 'whatsapp-web.js';
 
 describe('test Wapp[WAWeb.Client]', () => {
 
-  test('test Wapp[WAWeb.Client] types', () => {
+  test('test Wapp[WAWeb.Client] Client type', () => {
+    type WappWAWeb = Wapp<Client>;
+    type Verify = CheckBool<
+        Extends<
+            WappWAWeb['client'],
+            Client
+        >
+    >;
+    const verified: Verify = true;
+
+    expect( verified ).toBe( true );
+  });
+
+  test('test Wapp[WAWeb.Client] Message type', () => {
     type WappWAWeb = Wapp<Client>;
     type Verify = CheckBool<
         Extends<
@@ -13,6 +26,7 @@ describe('test Wapp[WAWeb.Client]', () => {
         >
     >;
     const verified: Verify = true;
-    if (!verified) throw new Error('types don\'t match');
+
+    expect( verified ).toBe( true );
   });
 })
