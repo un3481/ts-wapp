@@ -2,7 +2,7 @@
   "name": "ts-wapp",
   "author": "anthony",
   "version": "4.1.1",
-  "description": "HTTP REST API wrapper for Venom.js",
+  "description": "Wrapper for Whatsapp-web.js",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
