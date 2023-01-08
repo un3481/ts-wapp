@@ -139,7 +139,7 @@ export default class Server<
     try {
       // log action to be executed
       const ip = requestIp.getClientIp(req).replace('::ffff:', '')
-      await console.log(`[${t()}] Exec(remote::actions[${trigger.name}]) From(${ip})`)
+      console.log(`[${t()}] Exec(remote::actions[${trigger.name}]) From(${ip})`)
       // check request
       if (!is.object(req)) throw new Error('bad request')
       // execute action
@@ -151,7 +151,7 @@ export default class Server<
     // if error occurred
     } catch (error) {
       // log error
-      await console.error(`[${t()}] Throw(remote::actions[${trigger.name}]) Catch(${error})`)
+      console.error(`[${t()}] Throw(remote::actions[${trigger.name}]) Catch(${error})`)
       // reject with error
       return { ok: false, error: `${error}` }
     }
@@ -175,35 +175,32 @@ export default class Server<
           // Check request
           if (!is.object(req.body)) throw new Error('bad request')
           // Extract arguments
-          const { to, content, log, options, referer } = req.body as {
-            to: unknown,
-            content: unknown,
-            log?: unknown,
-            options?: unknown,
-            referer?: unknown
-          }
+          const { to, content, log, options, referer } = req.body as Record<string, unknown>
           // Check arguments
           if (!is.string(to)) throw new Error('invalid argument "to"')
           if (!is.string(content)) throw new Error('invalid argument "content"')
-          if (!is.string.or.null(log)) throw new Error('invalid argument "log"')
-          if (!is.object.or.null(options)) throw new Error('invalid argument "quote"')
+          if (!is.string.opt(log)) throw new Error('invalid argument "log"')
+          if (!is.object.opt(options)) throw new Error('invalid argument "options"')
+          if (!is(isTarget).opt(referer)) throw new Error('invalid argument "referer"')
           // Send message
           const [ok, sent] = await sendMessage(
             to,
             content,
             options || {}
           )
+          // Log sent message
+          const ip = requestIp.getClientIp(req).replace('::ffff:', '')
+          if (log) console.log(`[${t()}] Sent(${log}) From(${ip})`)
+          // Check result
           if (!ok || is.error(sent)) throw sent
-          // Get referer
-          const ref = isTarget(referer) ? referer : null
           // Add On-Reply action
-          if (ref) {
+          if (referer) {
             this.core.on.reply(
               sent.id._serialized,
               async message => {
                 // POST On-Reply back to referer
                 const [ok, data] = await this.req(
-                  ref,
+                  referer,
                   'on_reply',
                   {
                     id: sent.id,

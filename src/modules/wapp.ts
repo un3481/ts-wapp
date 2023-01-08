@@ -4,10 +4,9 @@
 // Import Misc
 import { is, sets, handles } from 'ts-misc'
 import type { SafeReturn } from 'ts-misc/dist/modules/handles'
-import type { Await } from 'ts-misc/dist/modules/types'
 
 // Import Modules
-import type { Trigger, TriggerCall, ClientLike } from './types'
+import type { Trigger, TriggerCall, ClientLike, Message } from './types'
 
 // ##########################################################################################################################
 
@@ -39,11 +38,11 @@ class WhatsappOn<
   // Add On-Message Trigger
   message<A extends string>(trigger: {
     name: A,
-    fun: TriggerCall<Await<ReturnType<C['sendMessage']>>, unknown>
+    fun: TriggerCall<Message<C>, unknown>
   } & (
     A extends 'else'
       ? {}
-      : { condition: TriggerCall<Await<ReturnType<C['sendMessage']>>, boolean> }
+      : { condition: TriggerCall<Message<C>, boolean> }
   )): boolean {
     const { name, condition, fun } = trigger
     // Check Inputs
@@ -52,7 +51,7 @@ class WhatsappOn<
     if (!is.function(fun)) throw new Error('invalid argument "fun"')
     if (!is.function.or.undefined(condition)) throw new Error('invalid argument "condition"')
     // Make action
-    let safeTrigger: Trigger<Await<ReturnType<C['sendMessage']>>>
+    let safeTrigger: Trigger<Message<C>>
     if (name === 'else') {
       safeTrigger = {
         name: name,
@@ -76,7 +75,7 @@ class WhatsappOn<
   // Add On-Reply Trigger
   reply(
     id: string,
-    fun: TriggerCall<Await<ReturnType<C['sendMessage']>>, unknown>
+    fun: TriggerCall<Message<C>, unknown>
   ): boolean {
     if (!is.string(id)) throw new Error(`invalid argument "id": ${sets.serialize(id)}`)
     if (!is.function(fun)) throw new Error(`invalid argument fun": ${sets.serialize(fun)}`)
@@ -103,7 +102,7 @@ class WhatsappRun<
   // ##########################################################################################################################
 
   // Run Actions
-  async triggerLoop(message: Await<ReturnType<C['sendMessage']>>): Promise<void> {
+  async triggerLoop(message: Message<C>): Promise<void> {
     try {
       // Check All Action Conditions
       for (const trigger of Object.values(this.core.triggers)) {
@@ -133,7 +132,7 @@ class WhatsappRun<
   // ##########################################################################################################################
 
   // Run On-Message Trigger
-  async message(message: Await<ReturnType<C['sendMessage']>>): Promise<void> {
+  async message(message: Message<C>): Promise<void> {
     // Prevent execution if bot not available
     if (!this.core.client) return
     // Check Parameter
@@ -158,7 +157,7 @@ class WhatsappRun<
   // ##########################################################################################################################
 
   // Run On-Reply Trigger
-  async reply(message: Await<ReturnType<C['sendMessage']>>): Promise<void> {
+  async reply(message: Message<C>): Promise<void> {
     // Check for Quoted-Message Object
     if (!message.hasQuotedMsg) throw new Error('invalid argument "message"')
     const target = await message.getQuotedMessage()
@@ -179,8 +178,8 @@ export default class WhatsappCore<
   C extends ClientLike
 > {
   client: C
-  triggers: Record<string, Trigger<Await<ReturnType<C['sendMessage']>>>>
-  repliables: Record<string, TriggerCall<Await<ReturnType<C['sendMessage']>>, SafeReturn<unknown>>>
+  triggers: Record<string, Trigger<Message<C>>>
+  repliables: Record<string, TriggerCall<Message<C>, SafeReturn<unknown>>>
   on: WhatsappOn<C>
   run: WhatsappRun<C>
 

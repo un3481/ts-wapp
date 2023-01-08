@@ -3,7 +3,7 @@
 
 // Import Misc Types
 import { is } from 'ts-misc'
-import type { TypeGuard } from 'ts-misc/dist/modules/types'
+import type { TypeGuard, Await } from 'ts-misc/dist/modules/types'
 import type { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // ##########################################################################################################################
@@ -77,5 +77,12 @@ export interface ClientLike {
   info: ClientInfoLike,
   sendMessage(chatId: string, content: MessageContentLike, options?: MessageSendOptionsLike): Promise<MessageLike>
 }
+
+// ##########################################################################################################################
+
+// Get Message Type from Client
+export type Message<C extends ClientLike> = (
+  Await<ReturnType<C['sendMessage']>>
+)
 
 // ##########################################################################################################################
