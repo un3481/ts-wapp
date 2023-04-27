@@ -109,7 +109,7 @@ export default class Server<
   // ##########################################################################################################################
 
   // Request
-  async req(
+  async post(
     target: ITarget,
     name: string,
     data: unknown
@@ -170,7 +170,7 @@ export default class Server<
       app,
       base,
       {
-        name: 'send',
+        name: 'message',
         fun: async req => {
           // Check request
           if (!is.object(req.body)) throw new Error('bad request')
@@ -199,11 +199,11 @@ export default class Server<
               sent.id._serialized,
               async message => {
                 // POST On-Reply back to referer
-                const [ok, data] = await this.req(
+                const [ok, data] = await this.post(
                   referer,
-                  'on_reply',
+                  'reply',
                   {
-                    id: sent.id,
+                    id: sent.id._serialized,
                     reply: message
                   }
                 )
@@ -225,7 +225,7 @@ export default class Server<
       app,
       base,
       {
-        name: 'get_host_device',
+        name: 'host_device',
         fun: async req => {
           return this.core.client.info.wid
         }
