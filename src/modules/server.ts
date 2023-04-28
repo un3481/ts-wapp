@@ -7,18 +7,15 @@ import type { Express, Request, RequestHandler } from 'express'
 import basicAuth from 'express-basic-auth'
 import requestIp from 'request-ip'
 
-// Import Axios
-import axios from 'axios'
-import type { AxiosResponse } from 'axios'
-
 // Import Misc Modules
 import { is, sets, handles } from 'ts-misc'
 import type { SafeReturn } from 'ts-misc/dist/modules/handles'
 
 // Import Modules
 import { isTarget } from './types'
-import type { TriggerCall, ITarget, ClientLike } from './types'
+import type { TriggerCall, ClientLike } from './types'
 import type WhatsappCore from './wapp'
+import Remote from './remote'
 
 // ##########################################################################################################################
 
@@ -45,7 +42,46 @@ class ServerOn<
 
   // ##########################################################################################################################
 
-  // Add Bot Interface Action
+  // Add HTTP GET Endpoint
+  get(
+    app: Express,
+    base: string,
+    trigger: {
+      name: string,
+      fun: TriggerCall<Request, unknown>
+    }
+  ): boolean {
+    // Check Inputs
+    if (!is.string(trigger.name)) throw new Error('invalid argument "name"')
+    if (trigger.name.length === 0) throw new Error('invalid argument "name"')
+    if (!is.function(trigger.fun)) throw new Error('invalid argument "fun"')
+    // Set Safe Action
+    const sfun = handles.safe(trigger.fun).async
+    // Set Bot Interface
+    const on = this
+    app.get(
+      `/${base}/${trigger.name}/`,
+      basicAuth({ get users() { return on.server.users } }),
+      express.json() as RequestHandler,
+      async (req, res) => {
+        // Execute Functionality
+        const response = await this.server.run(req, {
+          name: trigger.name,
+          fun: sfun
+        })
+        // Send Response
+        res.send(JSON.stringify(
+          sets.serialize(response)
+        ))
+      }
+    )
+    // Return done
+    return true
+  }
+
+  // ##########################################################################################################################
+
+  // Add HTTP POST Endpoint
   post(
     app: Express,
     base: string,
@@ -92,6 +128,7 @@ export default class Server<
   core: WhatsappCore<C>
   users: Record<string, string>
   auth: string
+  remote: Remote
   on: ServerOn<C>
 
   // ##########################################################################################################################
@@ -102,28 +139,10 @@ export default class Server<
     )
     // Set Authentication
     this.users = {}
+    // Set Remote Object
+    this.remote = new Remote()
     // Set Triggers
     this.on = new ServerOn(this)
-  }
-
-  // ##########################################################################################################################
-
-  // Request
-  async post(
-    target: ITarget,
-    name: string,
-    data: unknown
-  ): Promise<SafeReturn<AxiosResponse<any>>> {
-    return handles.safe(axios.post).async(
-      `${target.address}/${name}`,
-      sets.serialize(data),
-      {
-        auth: {
-          username: target.user,
-          password: target.password
-        }
-      }
-    )
   }
 
   // ##########################################################################################################################
@@ -165,7 +184,24 @@ export default class Server<
     const sendMessage = handles.safe(
       this.core.client.sendMessage
     ).async
-    // Add send-message Action
+
+    // ##########################################################################################################################
+
+    // Add get-host-device Action
+    this.on.get(
+      app,
+      base,
+      {
+        name: 'host_device',
+        fun: async req => {
+          return this.core.client.info.wid
+        }
+      }
+    )
+
+    // ##########################################################################################################################
+
+    // Add post-message Action
     this.on.post(
       app,
       base,
@@ -199,7 +235,7 @@ export default class Server<
               sent.id._serialized,
               async message => {
                 // POST On-Reply back to referer
-                const [ok, data] = await this.post(
+                const [ok, data] = await this.remote.post(
                   referer,
                   'reply',
                   {
@@ -219,18 +255,6 @@ export default class Server<
     )
 
     // ##########################################################################################################################
-
-    // Add host-device Action
-    this.on.post(
-      app,
-      base,
-      {
-        name: 'host_device',
-        fun: async req => {
-          return this.core.client.info.wid
-        }
-      }
-    )
 
     // Return Done
     return true
